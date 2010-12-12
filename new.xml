@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/css" href="masterx.css"?>
+<!DOCTYPE TEI.2 SYSTEM "masterx.dtd">
+
+<TEI.2>
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Kramářské tisky KNM</title>
+        <author/>
+      </titleStmt>
+      <publicationStmt>
+        <p>Knihovna Národního muzea, Praha</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Katalog kramářských písní ve formátu MASTER</p>
+        <msDescription status="uni">
+          <msIdentifier>
+            <country reg="CZ">Česko</country>
+            <settlement>Praha</settlement>
+            <repository>Knihovna Národního muzea</repository>
+            <idno>KP xxx</idno>
+          </msIdentifier>
+          <msHeading>
+            <title>x</title>
+            <author/>
+            <respStmt>
+              <resp>Tiskař</resp>
+              <name role="printer" type="place">s.l.</name>
+              <name role="printer" type="person">s.n.<date/>
+              </name>
+            </respStmt>
+          <textLang langKey="CZE">česky</textLang>
+      </msHeading>
+      <msContents>
+        <msItem n="1">
+          <locus from="1" to="x">s. 1-x</locus>
+          <title type="incipit">x</title>
+          <summary>
+            <term type="genre">Kramářská píseň</term>
+          </summary>
+          <rubric>
+          </rubric>
+          <colophon/>
+          <incipit>
+          </incipit>
+          <q type="melody">
+<note>Bez nápěvu</note>
+          </q>
+          <note type="strophes">[x] slok</note>
+        </msItem>
+      </msContents>
+      <physDesc>
+        <form>
+          <p>Kniha - tisk</p>
+        </form>
+        <support>
+          <p>Papír</p>
+        </support>
+        <extent>[x] s.<dimensions scope="all" type="leaf" units="mm">xº.</dimensions>
+        </extent>
+        <layout>
+          <p>Tištěno per extensum.<dimensions units="mm">
+              <height/>
+              <width/>
+            </dimensions>
+          </p>
+        </layout>
+        <msWriting>
+          <p>Gotika</p>
+        </msWriting>
+        <decoration>
+          <decoNote>
+            <p>
+<dimensions units="mm">
+                <height/>
+                <width/>
+              </dimensions>
+            </p>
+          </decoNote>
+        </decoration>
+        <condition>
+          <p>Stav dobrý</p>
+        </condition>
+      </physDesc>
+      <history>
+        <origin>
+          <p>
+            <placeName type="country">Česko</placeName>
+            <origDate notAfter="1xxx" notBefore="1xxx"/>
+          </p>
+        </origin>
+        <acquisition>
+          <p/>
+        </acquisition>
+      </history>
+      <additional>
+        <listBibl>
+          <bibl>
+            <idno type="knihopis"/>
+          </bibl>
+        </listBibl>
+      </additional>
+    </msDescription>
+</sourceDesc>
+</fileDesc>
+<profileDesc>
+  <langUsage>
+    <language id="CZE">čeština</language>
+    <language id="GER">němčina</language>
+    <language id="LAT">latina</language>
+    <language id="SLO">slovenština</language>
+    <language id="POL">polština</language>
+  </langUsage>
+</profileDesc>
+</teiHeader>
+<text>
+<body>
+  <p/>
+</body>
+</text>
+</TEI.2>
