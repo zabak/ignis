@@ -19,6 +19,11 @@ import org.xml.sax.helpers.ParserAdapter;
  * @author Iva Bydžovská
  */
 
+
+/**
+ * Class for loading and saving global settings
+ */
+
 public class TGlobalSettings {
 	TMainHolder MainHolder;
 	

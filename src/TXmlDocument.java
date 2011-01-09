@@ -50,6 +50,10 @@ import org.xml.sax.SAXException;
  * @author Iva Bydžovská
  */
 
+
+/**
+ * Class for handling XML document
+ */
 public class TXmlDocument {
 	private static final String SUPPORTED_DOC_TYPE = "TEI.2";
   private static final String TEI_HEADER = "teiHeader";
@@ -74,13 +78,24 @@ public class TXmlDocument {
 	private boolean WasEdited;
 	private TXmlMultiLineText lastEditedMultiLineText;
 	private int msSubItemIndex;
-	
+		
+	/**
+	 * After changes in form it counts new measures for scrollbars  
+	 */
 	public void PackAndSetExtends() {
 		composite.pack(true);
 		scrolledComposite.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		scrolledComposite.setExpandHorizontal(true);
 		scrolledComposite.setExpandVertical(true);		
 	}
+	
+	/**
+	 * Finds first child node of desired name
+	 * 
+	 * @param p		  Parent node of node to be found
+	 * @param Name  Name of node to be found 
+	 * @return      First child node of desired name or NULL if there is no such node 
+	 */
 	
 	Node GetFirstChildByName(Node p, String Name) {
 		NodeList nl = p.getChildNodes();
@@ -95,7 +110,16 @@ public class TXmlDocument {
 		return null;
 	}
 	
-
+  /**
+   * Finds first child node by name, attribute and its value
+   * 
+   * @param parent   Parent node of node to be found
+   * @param name     Name of node to be found
+   * @param attr     Attribute of node to be found
+   * @param attrVal  Attribute value (If it is null, attribute value may be anything
+   * @return  			 First child node of desired parameters or NULL if there is no such node
+   */
+	
 	public Node FindChildByNameAndAttribute(Node parent, String name, String attr, String attrVal) {
 		//Find node by name, attribute name and attribute value (may be null)
 		NodeList nl = parent.getChildNodes();
@@ -114,6 +138,15 @@ public class TXmlDocument {
 		return null;
 	}
 	
+	/**
+	 * Finds first child node of desired name or create one if there is no such node.
+	 * New node is appended to the end of the list of children of parent node
+	 * 
+	 * @param p     Parent node of node to be found
+	 * @param Name  Name of node to be found
+	 * @return      First child node of desired name or newly created one 
+	 */
+	
 	Node CreateOrFindChildByName(Node p, String Name) {
 		Node n = GetFirstChildByName(p, Name);
 		if(n == null) {
@@ -121,25 +154,15 @@ public class TXmlDocument {
 		}
 		return n;
 	}
-	//finds text node, if there is none, new will be created at the end
-	//old version
-	/*
-	Node CreateOrFindTextChild(Node p) {
-		if(p.hasChildNodes()) {
-			NodeList nl = p.getChildNodes();
-			//over all child nodes	
-			for(int i = 0; i < nl.getLength(); i++) {
-				Node child = nl.item(i);
-				if(Node.TEXT_NODE == child.getNodeType()) {
-					child.setNodeValue(child.getNodeValue().trim());
-					return child;
-				}
-			}			
-		} 
-		return p.appendChild(document.createTextNode(""));
-	}	
-	/**/
-	//finds text node, if there is none, new will be created at the end
+
+	/**
+	 * Finds LAST text node or create one if there is no such node.
+	 * Text node is created as last child node 
+	 * 
+	 * @param p    Parent node of text node to be found or created
+	 * @return 	   Last text node
+	 */
+	
 	Node CreateOrFindTextChild(Node p) {
 		if(p.hasChildNodes()) {
 			NodeList nl = p.getChildNodes();
@@ -158,7 +181,15 @@ public class TXmlDocument {
 		} 
 		return p.appendChild(document.createTextNode(""));
 	}
-//finds text node, if there is none, new will be created at the beginning
+	
+	/**
+	 * Finds FIRST text node or create one if there is no such node.
+	 * Text node is created as first child node 
+	 * 
+	 * @param p    Parent node of text node to be found or created
+	 * @return 	   First text node
+	 */
+	 
 	Node CreateFirstOrFindTextChild(Node p) {
 		if(p.hasChildNodes()) {
 			NodeList nl = p.getChildNodes();
@@ -173,6 +204,14 @@ public class TXmlDocument {
 		} 
 		return p.insertBefore(document.createTextNode(""), p.getFirstChild());
 	}	
+
+	/**
+	 * Creates or finds attribute. When attribute is created its value is set by DefaultValue parameter
+	 * @param p							Parent node
+	 * @param Name 					Name of attribute to be found or created
+	 * @param DefaultValue  Default value of newly created attribute
+	 * @return              Found or created attribute 
+	 */
 	
 	Attr CreateOrFindAttribute(Element p, String Name, String DefaultValue) {
 	  Attr a = p.getAttributeNode(Name);
@@ -183,6 +222,14 @@ public class TXmlDocument {
 	  } 
 	  return a;
 	}
+
+	/**
+	 * Creates or finds attribute. Value of attribute is set by DefaultValue parameter
+	 * @param p							Parent node
+	 * @param Name 					Name of attribute to be found or created
+	 * @param DefaultValue  Value of attribute
+	 * @return              Found or created attribute 
+	 */	
 	
 	Attr CreateOrSetAttribute(Element p, String Name, String DefaultValue) {
 	  Attr a = p.getAttributeNode(Name);
@@ -194,11 +241,14 @@ public class TXmlDocument {
 	  return a;
 	}	
 
+	/**
+	 *  Class keeps single-line text field synchronized with XML text node value 
+	 */
 	
 	class TXmlText {
 		private Text text;
 		Node textNode;
-		
+
 		public void modifyNodeText(String newText) {
 			SetWasEdited();
 			text.setText(newText);
@@ -226,6 +276,10 @@ public class TXmlDocument {
 		}
 	}
 
+	/**
+	 *  Class keeps single-line text field synchronized with XML node attribute value 
+	 */
+	
 	class TXmlAttrText {
 		private Text text;
 		Attr textAttr;		
@@ -247,6 +301,13 @@ public class TXmlDocument {
 			text.addModifyListener(new TXmlTextModifyListener());
 		}
 	}	
+	
+	
+	
+	/**
+	 *  Class keeps two single-line text field synchronized with XML text node value.
+	 *  First text field represents year of birth/creation, second text field represents year of death/destruction  
+	 */
 	
 	class TXmlTextYearRange {
 		private Text textBeg, textEnd;
@@ -296,6 +357,15 @@ public class TXmlDocument {
 			textEnd.addModifyListener(tyrml);
 		}
 	}	
+	
+	/**
+	 * Class keeps three single-line text field synchronized with XML text node value.
+	 * First one is number of first page, second one is number of second page, last one contains human readable notation.
+	 * Last one can be automatically generated.
+	 *  
+	 * <br />e.g:<br />
+	 * <code>&lt;locus from="1" to="16"&gt;s. 1-16&lt;/locus&gt;</code>
+	 */
 	
 	class TXmlLocus {
 		
@@ -363,6 +433,10 @@ public class TXmlDocument {
 		}
 	}
 	
+	/**
+	 *  Class keeps <code>combobox</code> synchronized with XML text node value 
+	 */
+	
 	class TXmlCombo {
 		private Combo text;
 		Node textNode;	
@@ -394,6 +468,12 @@ public class TXmlDocument {
 		}
 	}
 
+	/**
+	 *  Class keeps <code>combobox</code> synchronized with XML node and attribute value.
+	 *  Node value can be set by <code>combobox</code> text or by alternative strings.
+	 *  Attribute value can be set by <code>combobox</code> text or by alternative strings.
+	 */
+	
 	class TXmlNodeAttrCombo {
 		Combo text;
 		Attr textAttr;
@@ -426,6 +506,12 @@ public class TXmlDocument {
 			text.addModifyListener(new TXmlTextModifyListener());
 		}
 	}
+	
+	/**
+	 *  Class keeps <code>combobox</code> synchronized with XML node and multiple attributes value.
+	 *  Node value can be set by <code>combobox</code> text or by alternative strings.
+	 *  Multiple attributes value can be set by <code>combobox</code> text or by alternative strings.
+	 */
 	
 	class TXmlNodeAttrCombo2 {
 		Combo text;
@@ -467,6 +553,11 @@ public class TXmlDocument {
 			text.addModifyListener(new TXmlTextModifyListener());
 		}
 	}
+	
+	/**
+	 *  Class keeps <code>combobox</code> synchronized with XML attribute value.
+	 *  Attribute value can be set by <code>combobox</code> text or by alternative strings.
+	 */
 	
 	class TXmlAttrCombo {
 		Combo text;

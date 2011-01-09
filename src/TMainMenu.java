@@ -14,6 +14,10 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.TabItem;
 
+/**
+ * Class for handling main menu
+ */
+
 public class TMainMenu {
 	Menu menuBar, fileMenu, helpMenu;
 	  
