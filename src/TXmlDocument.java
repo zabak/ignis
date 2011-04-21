@@ -673,7 +673,7 @@ public class TXmlDocument {
 						PlaceText = CreateOrFindTextChild(Place);
 					} else if(Person == null && (type.getValue().equals("person") || type.getValue().equals("org"))){ 
 						Person = child;
-						PersonText = CreateOrFindTextChild(Person);
+						PersonText = CreateFirstOrFindTextChild(Person);  //20110421
 				  }
 				}
 				child = child.getNextSibling();
@@ -681,7 +681,7 @@ public class TXmlDocument {
 			//create missing person
 			if(Person == null) {
 				Person = Printer.appendChild(document.createElement("name"));
-				PersonText = CreateOrFindTextChild(Person);
+				PersonText = CreateFirstOrFindTextChild(Person); //20110421
 				PersonText.setNodeValue("s.n.");
 				CreateOrFindAttribute((Element) Person, "type", "person");
 				CreateOrFindAttribute((Element) Person, "role", "printer");
@@ -813,7 +813,7 @@ public class TXmlDocument {
 			new TXmlAttrCombo(personType, comboPerson, new String[] {"person", "org"});			
 			//create text for person
 			textPerson = new Text(group, SWT.BORDER);
-			PersonText = CreateOrFindTextChild(Person);
+			PersonText = CreateFirstOrFindTextChild(Person); //20110421
 			textPerson.setLayoutData(gridData);
 			new TXmlText(PersonText, textPerson);
 			
