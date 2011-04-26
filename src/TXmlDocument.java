@@ -206,6 +206,67 @@ public class TXmlDocument {
 	}	
 
 	/**
+	 * Finds if FIRST child node is text or create one if there is no such node.
+	 * Text node is created as first child node 
+	 * 
+	 * @param p    		Parent node of text node to be found or created
+	 * @param warning Warning if there are more not empty text nodes
+	 * @return 	   		First text node
+	 */
+	 
+	Node CreateFirstOrGetTextChild(Node p, boolean warning) {
+		if(p.hasChildNodes()) {
+			NodeList nl = p.getChildNodes();
+			String text = "";
+			Node firstchild = nl.item(0);
+  		if(Node.TEXT_NODE == firstchild.getNodeType()) { //found, store
+  			firstchild.setNodeValue(firstchild.getNodeValue().trim());
+			}	else { //not found created
+				firstchild = p.insertBefore(document.createTextNode(""), p.getFirstChild());
+			}
+			for (int i = 1; i < nl.getLength(); i++) {
+				Node child = nl.item(i); 
+				if(Node.TEXT_NODE == child.getNodeType()) {
+					if(!child.getNodeValue().trim().isEmpty()) { //we found not empty string
+						if(text.isEmpty()) {
+						  text = child.getNodeValue().trim();
+						} else {
+							text = text + " " + child.getNodeValue().trim();												
+						}
+					}
+				}
+			}
+			if(!text.isEmpty()) {
+				if(warning) {
+					MessageBox messageBox = new MessageBox(MainHolder.getShell(), SWT.ICON_WARNING
+		          | SWT.YES | SWT.NO | SWT.CANCEL);
+					if(firstchild.getNodeValue().isEmpty()) {
+					  messageBox.setMessage("Text '"+text+"' na neoèekávaném místì. Pøesunout?");
+					} else {
+						messageBox.setMessage("Text '"+text+"' na neoèekávaném místì. Spojit s správnì umístìným textem '"+firstchild.getNodeValue()+"' ?");
+					}
+		      messageBox.setText("Pøesunout?");
+		      int response = messageBox.open();
+		      if (response != SWT.CANCEL) {
+		      	SetWasEdited();
+		      	if(response == SWT.YES) {
+		      		firstchild.setNodeValue((firstchild.getNodeValue() + " " + text).trim());  
+		      	} 
+	      		for (int i = 1; i < nl.getLength(); i++) {
+	    				Node child = nl.item(i); 
+	    				if(Node.TEXT_NODE == child.getNodeType()) {
+	    					child.setNodeValue("");
+	    				}
+		      	}
+		      }
+				}  
+			}
+			return firstchild; 
+		} 
+		return p.insertBefore(document.createTextNode(""), p.getFirstChild());
+	}	
+	
+	/**
 	 * Creates or finds attribute. When attribute is created its value is set by DefaultValue parameter
 	 * @param p							Parent node
 	 * @param Name 					Name of attribute to be found or created
@@ -673,7 +734,7 @@ public class TXmlDocument {
 						PlaceText = CreateOrFindTextChild(Place);
 					} else if(Person == null && (type.getValue().equals("person") || type.getValue().equals("org"))){ 
 						Person = child;
-						PersonText = CreateFirstOrFindTextChild(Person);  //20110421
+						PersonText = CreateFirstOrGetTextChild(Person, true);  //20110426
 				  }
 				}
 				child = child.getNextSibling();
@@ -813,7 +874,7 @@ public class TXmlDocument {
 			new TXmlAttrCombo(personType, comboPerson, new String[] {"person", "org"});			
 			//create text for person
 			textPerson = new Text(group, SWT.BORDER);
-			PersonText = CreateFirstOrFindTextChild(Person); //20110421
+			PersonText = CreateFirstOrGetTextChild(Person, true); //20110421
 			textPerson.setLayoutData(gridData);
 			new TXmlText(PersonText, textPerson);
 			
