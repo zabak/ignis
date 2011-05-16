@@ -2215,7 +2215,7 @@ public class TXmlDocument {
 					Text text = new Text(composite, SWT.BORDER);
 					text.setBackground(bgColor);
 					text.setLayoutData(summGridData2);
-					new TXmlText(CreateOrFindTextChild(t), text);					
+					new TXmlText(CreateFirstOrGetTextChild(t,true), text);	//110516
 					Button removeTerm = new Button(composite, SWT.PUSH);
 					removeTerm.setText("x");					
 					combo.addModifyListener(new TXmlTextYearRangeExtension(composite,combo, t, removeTerm));
