@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
@@ -2782,7 +2783,7 @@ public class TXmlDocument {
 		} else {
 			SetDocumentUrl(newUrl);
 		}
-		
+		 
 		//delete backup file
 		File fBackup = new File(newUrl+".bak");
 		if(fBackup.exists()) {
@@ -2821,7 +2822,11 @@ public class TXmlDocument {
       messageBox.setText("Uložit?");
       int response = messageBox.open();
       if (response == SWT.YES) {
-			  saveDocument(null);			  
+      	if(getDocumentUrl().isEmpty()) {
+      		saveDocumentAs(); 
+      	} else {
+			    saveDocument(null);
+      	}
       }	
 		}
 		//remove reference
@@ -2840,6 +2845,21 @@ public class TXmlDocument {
 
 	public String getDocumentUrl() {
 		return documentUrl;
+	}
+  
+	//save document as
+	public void saveDocumentAs() {
+		FileDialog fd = new FileDialog(MainHolder.getShell(), SWT.SAVE);
+    fd.setText("Uložit jako");
+    fd.setFilterPath(MainHolder.getGlobalSettings().LastPath);//"C:/");
+    fd.setOverwrite(true);
+    String[] filterExt = { "*.xml"};
+    fd.setFilterExtensions(filterExt);
+    String selected = fd.open();
+    if(selected != null) {      		     		
+		  saveDocument(selected);
+		  MainHolder.getShell().setText(MainHolder.SHELL_TEXT + " : " + getName());
+    }		
 	}
 
 }

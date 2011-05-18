@@ -43,7 +43,7 @@ public class TMainMenu {
     fileOpenItem.setText("&Otevøít ...\tCtrl+O");
     fileOpenItem.setAccelerator(SWT.CTRL | 'O');
     fileSaveItem = new MenuItem(fileMenu, SWT.PUSH);
-    fileSaveItem.setText("&Uložit ...\tCtrl+S");
+		fileSaveItem.setText("&Uložit ...\tCtrl+S");
     fileSaveItem.setAccelerator(SWT.CTRL | 'S');
     fileSaveAsItem = new MenuItem(fileMenu, SWT.PUSH);
     fileSaveAsItem.setText("&Uložit jako ...\tCtrl+Shift+S");
@@ -166,17 +166,7 @@ public class TMainMenu {
       public void widgetSelected(SelectionEvent event) {
       	if(mainHolder.currentXmlDocument != null) {
       		if(SaveAs || mainHolder.currentXmlDocument.getDocumentUrl().isEmpty()) {
-      		  FileDialog fd = new FileDialog(mainHolder.getShell(), SWT.SAVE);
-    	      fd.setText("Uložit jako");
-    	      fd.setFilterPath(mainHolder.getGlobalSettings().LastPath);//"C:/");
-    	      fd.setOverwrite(true);
-    	      String[] filterExt = { "*.xml"};
-    	      fd.setFilterExtensions(filterExt);
-    	      String selected = fd.open();
-    	      if(selected != null) {      		     		
-        		  mainHolder.currentXmlDocument.saveDocument(selected);
-        		  mainHolder.getShell().setText(mainHolder.SHELL_TEXT + " : " + mainHolder.currentXmlDocument.getName());
-    	      }      			
+      			mainHolder.currentXmlDocument.saveDocumentAs();       		        			
       		} else mainHolder.currentXmlDocument.saveDocument(null);
       	}
       }
@@ -194,7 +184,7 @@ public class TMainMenu {
 			@Override	public void widgetDefaultSelected(SelectionEvent e) {
 				MessageBox messageBox = new MessageBox(mainHolder.getShell(), SWT.ICON_INFORMATION
             | SWT.OK);
-				messageBox.setMessage("Ignis verze 0.9.5");
+				messageBox.setMessage("Ignis verze 0.9.6");
 				messageBox.setText("O aplikaci");
 				messageBox.open();
 			}
