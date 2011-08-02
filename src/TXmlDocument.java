@@ -157,6 +157,29 @@ public class TXmlDocument {
 	}
 
 	/**
+	 * Finds first child node of desired name or create one if there is no such node.
+	 * New node is inserted after child node specified in the parameter "After"
+	 * 
+	 * @param p     Parent node of node to be found
+	 * @param Name  Name of node to be found
+	 * @param After Node that should be after newly created one 
+	 * @return      First child node of desired name or newly created one 
+	 */
+	
+	Node CreateOrFindChildByName(Node p, String Name, Node After) {
+		Node n = GetFirstChildByName(p, Name);
+		if(n == null) {
+			Node s = After != null ? After.getNextSibling() : null;
+			if(s == null) {
+				return p.appendChild(document.createElement(Name));
+			} else {
+				return p.insertBefore(document.createElement(Name), s);
+			}
+		}
+		return n;
+	}	
+	
+	/**
 	 * Finds LAST text node or create one if there is no such node.
 	 * Text node is created as last child node 
 	 * 
@@ -1075,24 +1098,20 @@ public class TXmlDocument {
 			//listBibl
 			Node listBibl = CreateOrFindChildByName(additional, "listBibl");
 			
+			boolean createKnihopis = true;
+				
 			//bibl
-			Node bibl = CreateOrFindChildByName(listBibl, "bibl");
+			Node bibl = listBibl.getFirstChild();
 			
-			//idno
-			Node idno = FindChildByNameAndAttribute(bibl, "idno", "type", "knihopis");
-			if(idno == null) {
-				idno = bibl.appendChild(document.createElement("idno"));
-				CreateOrFindAttribute((Element) idno, "type", "knihopis");				
-			}
-			
+			//create visual part for knihopis
 			new Label (composite, SWT.NONE).setText("Knihopis");
 			Composite compositeIdno = new Composite(composite, SWT.NONE);
 			compositeIdno.setLayout(gridLayoutCompact);
 			Text textIdno = new Text (compositeIdno, SWT.BORDER);
-			textIdno.setLayoutData(lgridData);	
-			new TXmlText(CreateOrFindTextChild(idno), textIdno);
-			new Label (compositeIdno, SWT.NONE).setText("forma dle èísla ve formátu Knihopisu Digital (K13172)");			
+			textIdno.setLayoutData(lgridData);				
+			new Label (compositeIdno, SWT.NONE).setText("forma dle èísla ve formátu Knihopisu Digital (K13172)");
 			
+			//create visual for other exemplars
 			Composite compositeOtherExemplars = new Composite(gpAdditional, SWT.NONE);
 			compositeOtherExemplars.setLayout(new GridLayout(1,false));
 			formData = new FormData();
@@ -1100,20 +1119,6 @@ public class TXmlDocument {
 			formData.left = new FormAttachment(0,0);
 			formData.right = new FormAttachment(100,0);
 			compositeOtherExemplars.setLayoutData(formData);
-
-			Node OtherExemplar = bibl.getFirstChild();
-			
-			while(OtherExemplar != null) {
-				if(OtherExemplar.getNodeName() == "idno") {
-					Attr a = ((Element)OtherExemplar).getAttributeNode("type");
-					if(a != null) {
-						if(a.getNodeValue().equals("other_exemplar")) {
-							new TOtherExemplar(OtherExemplar, compositeOtherExemplars);
-						}
-					} 
-				}
-				OtherExemplar = OtherExemplar.getNextSibling();
-			}	
 			
 			composite = new Composite(gpAdditional, SWT.NONE);			
 			composite.setLayout(new GridLayout(2,false));
@@ -1125,29 +1130,100 @@ public class TXmlDocument {
 			Button buttonAddExemplar = new Button(composite, SWT.PUSH);			
 			buttonAddExemplar.setText("Pøidat další exempláø");
 			
+			//create visual for literature
+			
+			Composite compositeLiterature = new Composite(gpAdditional, SWT.NONE);
+			compositeLiterature.setLayout(new GridLayout(1,false));
+			formData = new FormData();
+			formData.top = new FormAttachment(composite);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			compositeLiterature.setLayoutData(formData);
+			
+			composite = new Composite(gpAdditional, SWT.NONE);			
+			composite.setLayout(new GridLayout(2,false));
+			formData = new FormData();
+			formData.top = new FormAttachment(compositeLiterature);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			composite.setLayoutData(formData);				
+			Button buttonAddLiterature = new Button(composite, SWT.PUSH);			
+			buttonAddLiterature.setText("Pøidat další literaturu");
+			
+			//go trough all nodes looking for bibl
+			while (bibl != null) {
+				if (bibl.getNodeName() == "bibl") { //bilb was found
+					Node idno = GetFirstChildByName(bibl, "idno");
+					if(idno != null) { //knihopis or other exemplar
+						Attr idnoType = CreateOrFindAttribute((Element) idno, "type", "other_exemplar");
+						if(idnoType.getNodeValue().equals("knihopis")) {
+							createKnihopis = false;
+							new TXmlText(CreateOrFindTextChild(idno), textIdno); //bind node with text field
+						} else if(idnoType.getNodeValue().equals("other_exemplar")) { //other_exemplar
+							new TOtherExemplar(idno, compositeOtherExemplars);
+						} else { //unknown
+							//TODO: deal with unknown
+							
+						}
+					} else { //literature - get text node
+						new TLiterature(bibl, compositeLiterature);
+					}					
+				}
+				bibl = bibl.getNextSibling();
+			}
+			
+			if (createKnihopis) { //create knihopis if it failed to find one
+				bibl = listBibl.insertBefore(document.createElement("bibl"), listBibl.getFirstChild());
+				Node idno = bibl.appendChild(document.createElement("idno"));
+				CreateOrFindAttribute((Element) idno, "type", "knihopis");	
+				new TXmlText(CreateOrFindTextChild(idno), textIdno); //bind node with text field
+			}		
+			
+					
 			class AddOtherExemplarListener implements SelectionListener {
-				private Node bibl;
+				private Node listBibl;
 				private Composite compositeOtherExemplars;
 				
 				public AddOtherExemplarListener(Node n, Composite c) {
-					bibl = n;
+					listBibl = n;
 					compositeOtherExemplars = c;
 				}
 				@Override	public void widgetSelected(SelectionEvent e) {
 					SetWasEdited();
 					Node OtherExemplar;
-					OtherExemplar = bibl.appendChild(document.createElement("idno"));
+					OtherExemplar = listBibl.appendChild(document.createElement("bibl"));
+					OtherExemplar = OtherExemplar.appendChild(document.createElement("idno"));					
 					CreateOrFindAttribute((Element) OtherExemplar, "type", "other_exemplar");		
 					new TOtherExemplar(OtherExemplar, compositeOtherExemplars);
 					PackAndSetExtends();
 				}				
 				@Override	public void widgetDefaultSelected(SelectionEvent e) {
 					widgetSelected(e);					
-				}
-				
+				}				
 			}
+
+			class AddLiteratureListener implements SelectionListener {
+				private Node listBibl;
+				private Composite compositeLiterature;
+				
+				public AddLiteratureListener(Node n, Composite c) {
+					listBibl = n;
+					compositeLiterature = c;
+				}
+				@Override	public void widgetSelected(SelectionEvent e) {
+					SetWasEdited();
+					Node Literature;
+					Literature = listBibl.appendChild(document.createElement("bibl"));		
+					new TLiterature(Literature, compositeLiterature);
+					PackAndSetExtends();
+				}				
+				@Override	public void widgetDefaultSelected(SelectionEvent e) {
+					widgetSelected(e);					
+				}				
+			}			
 			
-			buttonAddExemplar.addSelectionListener(new AddOtherExemplarListener(bibl, compositeOtherExemplars));
+			buttonAddExemplar.addSelectionListener(new AddOtherExemplarListener(listBibl, compositeOtherExemplars));
+			buttonAddLiterature.addSelectionListener(new AddLiteratureListener(listBibl, compositeLiterature));
 		}
 		
 	}
@@ -1155,34 +1231,69 @@ public class TXmlDocument {
 	class TOtherExemplar {
 		public TOtherExemplar(final Node t, Composite c) {
 			final Composite composite = new Composite(c, SWT.NONE);
-			  GridData lgridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
-			  lgridData.minimumWidth = 75;
+			GridData lgridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
+			lgridData.minimumWidth = 75;
 			  
-				GridLayout gridLayout = new GridLayout(3, false); //add more columns to hold years
-				gridLayout.marginHeight = gridLayout.marginWidth = 0;
-				composite.setLayout(gridLayout);
+			GridLayout gridLayout = new GridLayout(3, false); //add more columns to hold years
+			gridLayout.marginHeight = gridLayout.marginWidth = 0;
+			composite.setLayout(gridLayout);
 				
-				new Label (composite, SWT.NONE).setText("Další exempláø");
-				Text textIdno = new Text (composite, SWT.BORDER);
-				textIdno.setLayoutData(lgridData);	
-				new TXmlText(CreateOrFindTextChild(t), textIdno);
+			new Label (composite, SWT.NONE).setText("Další exempláø");
+			Text textIdno = new Text (composite, SWT.BORDER);
+			textIdno.setLayoutData(lgridData);	
+			new TXmlText(CreateOrFindTextChild(t), textIdno);
 				
-				Button removeExemplar = new Button(composite, SWT.PUSH);
-				removeExemplar.setText("x");					
-				removeExemplar.addSelectionListener(new SelectionListener() {						
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					SetWasEdited();
-					composite.dispose();
-					PackAndSetExtends();
-					t.getParentNode().removeChild(t);
-				}						
-				@Override	public void widgetDefaultSelected(SelectionEvent e) {
-					widgetSelected(e);
-				}
-				});	
+			Button removeExemplar = new Button(composite, SWT.PUSH);
+			removeExemplar.setText("x");					
+			removeExemplar.addSelectionListener(new SelectionListener() {						
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				SetWasEdited();
+				composite.dispose();
+				PackAndSetExtends();
+				Node bibl = t.getParentNode(); 
+				bibl.getParentNode().removeChild(bibl);
+			}						
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
 			}
-		}	
+			});	
+		}
+	}	
+
+	class TLiterature {
+		public TLiterature(final Node t, Composite c) {
+			final Composite composite = new Composite(c, SWT.NONE);
+			GridData lgridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
+			lgridData.minimumWidth = 75;
+			lgridData.heightHint = 16*3;
+			lgridData.widthHint = 480;
+			  
+			GridLayout gridLayout = new GridLayout(3, false); //add more columns to hold years
+			gridLayout.marginHeight = gridLayout.marginWidth = 0;
+			composite.setLayout(gridLayout);
+				
+			new Label (composite, SWT.NONE).setText("Literatura");
+			Text textIdno = new Text (composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);	
+			textIdno.setLayoutData(lgridData);	
+			new TXmlText(CreateOrFindTextChild(t), textIdno);
+				
+			Button removeExemplar = new Button(composite, SWT.PUSH);
+			removeExemplar.setText("x");					
+			removeExemplar.addSelectionListener(new SelectionListener() {						
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				SetWasEdited();
+				composite.dispose();
+				PackAndSetExtends(); 
+				t.getParentNode().removeChild(t);
+			}						
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+			});	
+		}
+	}	
 	
 	class THistory {
 		Node history;
@@ -1230,6 +1341,16 @@ public class TXmlDocument {
 			comboPlaceName.setItems (new String [] {"Èesko"});
 			comboPlaceName.setLayoutData(gridData240);			 
 			new TXmlCombo(CreateOrFindTextChild(placeName), comboPlaceName);
+			
+			//provenance
+			
+			Node provenance = CreateOrFindChildByName(history, "provenance", origin);			
+			Node provenanceP = CreateOrFindChildByName(provenance, "p");
+			
+			new Label (composite, SWT.NONE).setText("Provenience");
+			Text textProvenance = new Text (composite, SWT.BORDER);
+			textProvenance.setLayoutData(gridData);
+			new TXmlText(CreateOrFindTextChild(provenanceP), textProvenance);
 			
 			//origDate
 			
