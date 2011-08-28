@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>icons</name>
+			<type>2</type>
+			<location>E:/Dokumenty/Workspace/Ignis/icons</location>
+		</link>
+	</linkedResources>
 </projectDescription>

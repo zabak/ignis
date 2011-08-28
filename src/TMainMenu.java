@@ -7,12 +7,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.TabItem;
 
 /**
  * Class for handling main menu
@@ -23,7 +21,7 @@ public class TMainMenu {
 	  
 	MenuItem fileMenuHeader, helpMenuHeader;
 	MenuItem fileExitItem, fileOpenItem, fileSaveItem, helpGetHelpItem;
-	MenuItem fileSaveAsItem, fileCloseItem, fileNewItem;
+	MenuItem fileSaveAsItem, fileCloseItem, fileNewItem, fileNewConvolut;
 	
 	final TMainHolder mainHolder;
 
@@ -39,6 +37,10 @@ public class TMainMenu {
     fileNewItem = new MenuItem(fileMenu, SWT.PUSH);
     fileNewItem.setText("&Nový\tCtrl+N");
     fileNewItem.setAccelerator(SWT.CTRL | 'N');
+    fileNewConvolut = new MenuItem(fileMenu, SWT.PUSH);
+    fileNewConvolut.setText("&Nový konvolut\tCtrl+Shift+N");
+    fileNewConvolut.setAccelerator(SWT.CTRL | SWT.SHIFT | 'N');
+    fileNewConvolut.setEnabled(false);
     fileOpenItem = new MenuItem(fileMenu, SWT.PUSH);
     fileOpenItem.setText("&Otevøít ...\tCtrl+O");
     fileOpenItem.setAccelerator(SWT.CTRL | 'O');
@@ -66,70 +68,17 @@ public class TMainMenu {
     helpGetHelpItem.setText("&O aplikaci");
     //set menu
     mc.getShell().setMenuBar(menuBar);     
+ 
     
-    
-    
-    class fileCloseItemListener implements SelectionListener {
-			public void widgetDefaultSelected(SelectionEvent e) {
-				if(mainHolder.currentXmlDocument != null) {
-				  mainHolder.currentXmlDocument.closeDocument();				  
-				}				
-			}
-			public void widgetSelected(SelectionEvent e) {
-				widgetDefaultSelected(e);				
-			}
-    }
-   
+     
     //add event
-    fileCloseItem.addSelectionListener(new fileCloseItemListener());
-   
-    class fileNewItemListener implements SelectionListener {
-      public void widgetSelected(SelectionEvent event) {
-      	new TXmlDocument(mainHolder, "");
-	        /*
-	        TXmlDocument xd = new TXmlDocument(mainHolder, selected); 
-	        mainHolder.AddXmlDocument(xd); //register to holder
-	        mainHolder.getTabFolder().setSelection(xd.getTabItem()); //show new tab
-					*/
-      }
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent event) {
-				widgetSelected(event);				
-			}
-    }
-    
+    fileCloseItem.addSelectionListener(new fileCloseItemListener(mainHolder));
     //add event
-    fileNewItem.addSelectionListener(new fileNewItemListener());
-    
-    class fileOpenItemListener implements SelectionListener {
-      public void widgetSelected(SelectionEvent event) {
-  		  FileDialog fd = new FileDialog(mainHolder.getShell(), SWT.OPEN);
-	      fd.setText("Otevøít");
-	      fd.setFilterPath(mainHolder.getGlobalSettings().LastPath);//"C:/");
-	      String[] filterExt = { "*.xml"};
-	      fd.setFilterExtensions(filterExt);
-	      String selected = fd.open();
-	      if(selected != null) {
-	      	for(TXmlDocument xd : mainHolder.xmlDocuments) {
-	      		if(xd.getDocumentUrl().equals(selected) && !xd.getDocumentUrl().isEmpty()) {
-	      			TabItem tabItem = xd.getTabItem();
-	      			mainHolder.getTabFolder().setSelection(tabItem); //show new tab, no event!		
-	      			mainHolder.FindSelectedXmlDocument(tabItem);     //because missing select event!
-	      			return;
-	      		}
-	      	}
-	      	new TXmlDocument(mainHolder, selected);
-	      }
-      }
-
-      public void widgetDefaultSelected(SelectionEvent event) {
-        widgetSelected(event);
-      }
-    }    
-    
+    fileNewItem.addSelectionListener(new fileNewItemListener(mainHolder));        
     //add event
-    fileOpenItem.addSelectionListener(new fileOpenItemListener());
+    fileOpenItem.addSelectionListener(new fileOpenItemListener(mainHolder));        
+    //add event
+    fileNewConvolut.addSelectionListener(new fileNewConvolutListener(mainHolder));
     
     class fileExitItemListener implements Listener {
     	boolean InProgress;
@@ -157,34 +106,16 @@ public class TMainMenu {
     mainHolder.getShell().addListener(SWT.Close, fileExitListener);
     fileExitItem.addListener(SWT.Selection, fileExitListener);    
     
-    class fileSaveItemListener implements SelectionListener {
-    	boolean SaveAs;
-    	public fileSaveItemListener(boolean isSaveAs) {
-    		SaveAs = isSaveAs;
-    	}
-    	
-      public void widgetSelected(SelectionEvent event) {
-      	if(mainHolder.currentXmlDocument != null) {
-      		if(SaveAs || mainHolder.currentXmlDocument.getDocumentUrl().isEmpty()) {
-      			mainHolder.currentXmlDocument.saveDocumentAs();       		        			
-      		} else mainHolder.currentXmlDocument.saveDocument(null);
-      	}
-      }
-
-      public void widgetDefaultSelected(SelectionEvent event) {
-      	widgetSelected(event);
-      }
-    }
     //add event
-    fileSaveItem.addSelectionListener(new fileSaveItemListener(false));
+    fileSaveItem.addSelectionListener(new fileSaveItemListener(false, mainHolder));
     //add event
-    fileSaveAsItem.addSelectionListener(new fileSaveItemListener(true));    
+    fileSaveAsItem.addSelectionListener(new fileSaveItemListener(true, mainHolder));    
 
     class helpGetHelpItemListener implements SelectionListener {
 			@Override	public void widgetDefaultSelected(SelectionEvent e) {
 				MessageBox messageBox = new MessageBox(mainHolder.getShell(), SWT.ICON_INFORMATION
             | SWT.OK);
-				messageBox.setMessage("Ignis verze 0.9.7");
+				messageBox.setMessage("Ignis verze 0.9.8");
 				messageBox.setText("O aplikaci");
 				messageBox.open();
 			}

@@ -18,8 +18,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
@@ -35,6 +39,7 @@ class TMainHolder {
 	private Shell shell;
 	private TGlobalSettings globalSettings;
 	private TabFolder tabFolder;
+	private TTopToolBar topToolBar;
 
 	public ArrayList<TXmlDocument> xmlDocuments;
 	public TXmlDocument currentXmlDocument;
@@ -86,15 +91,33 @@ class TMainHolder {
 			messageBox.open();
 		}
 
-		shell = new Shell(display);
+		//shell = new Shell(display);
+		/*
 		FillLayout fillLayout = new FillLayout(SWT.HORIZONTAL | SWT.VERTICAL);
 		fillLayout.marginHeight = 4;
 		fillLayout.marginWidth = 4;
 		shell.setLayout(fillLayout); // set layout to fill whole window
+		*/
+		
+		
+		topToolBar = new TTopToolBar(this);
+		//form layout for coolbar
+		FormLayout shellLayout = new FormLayout ();
+		shell.setLayout (shellLayout);
+		
+		
 		shell.setText(SHELL_TEXT); // set title
-
-		tabFolder = new TabFolder(shell, SWT.TOP);
+	  
+		tabFolder = new TabFolder(shell, SWT.TOP);		
 		tabFolder.setLayout(new FillLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+
+		FormData data = new FormData ();
+		data.left = new FormAttachment (0, 0);
+		data.right = new FormAttachment (100, 0);
+		data.top = new FormAttachment (topToolBar.GetCoolBar(), 0, SWT.DEFAULT);
+		data.bottom = new FormAttachment (100, 0);		
+		tabFolder.setLayoutData(data);
+		
 		tabFolder.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -107,6 +130,7 @@ class TMainHolder {
 				widgetSelected(e);
 			}
 		});
+		
 		/* 
 		 * * / TabItem ti = new TabItem(tabFolder, 0); ti.setText("pokus");
 		 * ti.dispose(); /* new TabItem(tabFolder, 0).setText("pokus 2"); new
@@ -180,4 +204,110 @@ class TMainHolder {
 
 		display.dispose();
 	}
+}
+
+class fileNewItemListener implements SelectionListener {
+	private final TMainHolder mainHolder;
+
+	public fileNewItemListener(TMainHolder mH) {
+		mainHolder = mH;
+	}
+	
+  public void widgetSelected(SelectionEvent event) {
+		new TXmlDocument(mainHolder, "");
+  }
+
+	@Override
+	public void widgetDefaultSelected(SelectionEvent event) {
+		widgetSelected(event);				
+	}					 
+}
+
+class fileNewConvolutListener implements SelectionListener {
+	private final TMainHolder mainHolder;
+
+	public fileNewConvolutListener(TMainHolder mH) {
+		mainHolder = mH;
+	}	
+	
+  public void widgetSelected(SelectionEvent event) {
+  	//TODO: implement new convolut creation
+  	new TXmlDocument(mainHolder, "");
+  }
+
+  public void widgetDefaultSelected(SelectionEvent event) {
+    widgetSelected(event);
+  }
+}  
+
+
+class fileCloseItemListener implements SelectionListener {
+	private final TMainHolder mainHolder;
+
+	public fileCloseItemListener(TMainHolder mH) {
+		mainHolder = mH;
+	}		
+	
+	public void widgetDefaultSelected(SelectionEvent e) {
+		if(mainHolder.currentXmlDocument != null) {
+		  mainHolder.currentXmlDocument.closeDocument();				  
+		}				
+	}
+	public void widgetSelected(SelectionEvent e) {
+		widgetDefaultSelected(e);				
+	}
+}
+
+class fileOpenItemListener implements SelectionListener {
+	private final TMainHolder mainHolder;
+	
+	public fileOpenItemListener(TMainHolder mH) {
+		mainHolder = mH;
+	}
+	
+  public void widgetSelected(SelectionEvent event) {
+	  FileDialog fd = new FileDialog(mainHolder.getShell(), SWT.OPEN);
+    fd.setText("Otevøít");
+    fd.setFilterPath(mainHolder.getGlobalSettings().LastPath);//"C:/");
+    String[] filterExt = { "*.xml"};
+    fd.setFilterExtensions(filterExt);
+    String selected = fd.open();
+    if(selected != null) {
+    	for(TXmlDocument xd : mainHolder.xmlDocuments) {
+    		if(xd.getDocumentUrl().equals(selected) && !xd.getDocumentUrl().isEmpty()) {
+    			TabItem tabItem = xd.getTabItem();
+    			mainHolder.getTabFolder().setSelection(tabItem); //show new tab, no event!		
+    			mainHolder.FindSelectedXmlDocument(tabItem);     //because missing select event!
+    			return;
+    		}
+    	}
+    	new TXmlDocument(mainHolder, selected);
+    }
+  }
+
+  public void widgetDefaultSelected(SelectionEvent event) {
+    widgetSelected(event);
+  }
+}
+
+class fileSaveItemListener implements SelectionListener {
+	boolean SaveAs;
+  private final TMainHolder mainHolder;
+	
+	public fileSaveItemListener(boolean isSaveAs, TMainHolder mH) {
+		mainHolder = mH; 
+		SaveAs = isSaveAs;
+	}
+	
+  public void widgetSelected(SelectionEvent event) {
+  	if(mainHolder.currentXmlDocument != null) {
+  		if(SaveAs || mainHolder.currentXmlDocument.getDocumentUrl().isEmpty()) {
+  			mainHolder.currentXmlDocument.saveDocumentAs();       		        			
+  		} else mainHolder.currentXmlDocument.saveDocument(null);
+  	}
+  }
+
+  public void widgetDefaultSelected(SelectionEvent event) {
+  	widgetSelected(event);
+  }
 }
