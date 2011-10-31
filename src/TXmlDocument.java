@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,20 +73,48 @@ public class TXmlDocument {
 	private TabItem tabItem;
 	private Document document;
 	private DocumentType documentType;
-	final private Composite composite;
+	final private Composite compositeDoc;
 	final public ScrolledComposite scrolledComposite;
 	private GridData gridData;
 	public 	Label dummyLabel;
 	private boolean WasEdited;
 	private TXmlMultiLineText lastEditedMultiLineText;
 	private int msSubItemIndex;
+	private boolean isComposite = false;
+	public Node msHeading;
+	private final TXmlDocument thisDocument;
+	private TXmlDocument masterDocument;
+	private Node myMsPart;
+	public ArrayList<TXmlDocument> xmlSubDocuments;
+	public TXmlText idnoXmlText;	
+	
+	/**
+	 * Returns master node for sub-documents and null for others
+	 */
+	public Node GetMsPart() {
+		return myMsPart;
+	}
+	
+	/**
+	 * Returns master document for sub-documents and null for others
+	 */
+	public TXmlDocument GetMasterDocument() {
+		return masterDocument;
+	}
+		
+	/**
+	 * 
+	 */
+	public boolean GetIsComposite() {
+		return isComposite;
+	}
 		
 	/**
 	 * After changes in form it counts new measures for scrollbars  
 	 */
 	public void PackAndSetExtends() {
-		composite.pack(true);
-		scrolledComposite.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		compositeDoc.pack(true);
+		scrolledComposite.setMinSize(compositeDoc.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		scrolledComposite.setExpandHorizontal(true);
 		scrolledComposite.setExpandVertical(true);		
 	}
@@ -847,7 +876,7 @@ public class TXmlDocument {
 			new Label (compRole, SWT.NONE).setText("Role");
 			Button button = new Button(compRole, SWT.PUSH);
 			button.setText("x");
-			button.setToolTipText("Vymazat tuto zodpovìdnost");
+			button.setToolTipText("Vymazat tuto odpovìdnost");
 			//look for reps
 			Node resp = CreateOrFindChildByName(n, "resp");
 			resp = CreateOrFindTextChild(resp);
@@ -1088,54 +1117,67 @@ public class TXmlDocument {
 			gpAdditional.setLayoutData(formData);
 			gpAdditional.setLayout(new FormLayout());			
 		
-			Composite composite = new Composite(gpAdditional, SWT.NONE);			
-			composite.setLayout(new GridLayout(2,false));
-			formData = new FormData();
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			composite.setLayoutData(formData);		
-			
+			Node bibl;
+			boolean createKnihopis;
+			Text textIdno = null;
+			Composite compositeOtherExemplars = null;
+			Button buttonAddExemplar = null;
 			//listBibl
-			Node listBibl = CreateOrFindChildByName(additional, "listBibl");
+			Node listBibl = CreateOrFindChildByName(additional, "listBibl");			
 			
-			boolean createKnihopis = true;
+			Composite composite = null;
+			
+			if(!isComposite) {  //Knihopis and other exemplars
+				composite = new Composite(gpAdditional, SWT.NONE);			
+				composite.setLayout(new GridLayout(2,false));
+				formData = new FormData();
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				composite.setLayoutData(formData);			
 				
-			//bibl
-			Node bibl = listBibl.getFirstChild();
-			
-			//create visual part for knihopis
-			new Label (composite, SWT.NONE).setText("Knihopis");
-			Composite compositeIdno = new Composite(composite, SWT.NONE);
-			compositeIdno.setLayout(gridLayoutCompact);
-			Text textIdno = new Text (compositeIdno, SWT.BORDER);
-			textIdno.setLayoutData(lgridData);				
-			new Label (compositeIdno, SWT.NONE).setText("forma dle èísla ve formátu Knihopisu Digital (K13172)");
-			
-			//create visual for other exemplars
-			Composite compositeOtherExemplars = new Composite(gpAdditional, SWT.NONE);
-			compositeOtherExemplars.setLayout(new GridLayout(1,false));
-			formData = new FormData();
-			formData.top = new FormAttachment(composite);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			compositeOtherExemplars.setLayoutData(formData);
-			
-			composite = new Composite(gpAdditional, SWT.NONE);			
-			composite.setLayout(new GridLayout(2,false));
-			formData = new FormData();
-			formData.top = new FormAttachment(compositeOtherExemplars);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			composite.setLayoutData(formData);				
-			Button buttonAddExemplar = new Button(composite, SWT.PUSH);			
-			buttonAddExemplar.setText("Pøidat další exempláø");
+				createKnihopis = true;
+					
+				//bibl
+				bibl = listBibl.getFirstChild();
+				
+				//create visual part for knihopis
+				new Label (composite, SWT.NONE).setText("Knihopis");
+				Composite compositeIdno = new Composite(composite, SWT.NONE);
+				compositeIdno.setLayout(gridLayoutCompact);
+				textIdno = new Text (compositeIdno, SWT.BORDER);
+				textIdno.setLayoutData(lgridData);				
+				new Label (compositeIdno, SWT.NONE).setText("forma dle èísla ve formátu Knihopisu Digital (K13172)");
+				
+				//create visual for other exemplars
+				compositeOtherExemplars = new Composite(gpAdditional, SWT.NONE);
+				compositeOtherExemplars.setLayout(new GridLayout(1,false));
+				formData = new FormData();
+				formData.top = new FormAttachment(composite);
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				compositeOtherExemplars.setLayoutData(formData);
+				
+				composite = new Composite(gpAdditional, SWT.NONE);			
+				composite.setLayout(new GridLayout(2,false));
+				formData = new FormData();
+				formData.top = new FormAttachment(compositeOtherExemplars);
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				composite.setLayoutData(formData);				
+				buttonAddExemplar = new Button(composite, SWT.PUSH);			
+				buttonAddExemplar.setText("Pøidat další exempláø");
+			} else {
+				createKnihopis = false;			
+				//bibl
+				bibl = listBibl.getFirstChild();				
+			}
 			
 			//create visual for literature
 			
 			Composite compositeLiterature = new Composite(gpAdditional, SWT.NONE);
 			compositeLiterature.setLayout(new GridLayout(1,false));
 			formData = new FormData();
-			formData.top = new FormAttachment(composite);
+			if(composite != null) formData.top = new FormAttachment(composite);
 			formData.left = new FormAttachment(0,0);
 			formData.right = new FormAttachment(100,0);
 			compositeLiterature.setLayoutData(formData);
@@ -1155,15 +1197,19 @@ public class TXmlDocument {
 				if (bibl.getNodeName() == "bibl") { //bilb was found
 					Node idno = GetFirstChildByName(bibl, "idno");
 					if(idno != null) { //knihopis or other exemplar
-						Attr idnoType = CreateOrFindAttribute((Element) idno, "type", "other_exemplar");
-						if(idnoType.getNodeValue().equals("knihopis")) {
-							createKnihopis = false;
-							new TXmlText(CreateOrFindTextChild(idno), textIdno); //bind node with text field
-						} else if(idnoType.getNodeValue().equals("other_exemplar")) { //other_exemplar
-							new TOtherExemplar(idno, compositeOtherExemplars);
-						} else { //unknown
-							//TODO: deal with unknown
-							
+						if(!isComposite) { 
+							Attr idnoType = CreateOrFindAttribute((Element) idno, "type", "other_exemplar");
+							if(idnoType.getNodeValue().equals("knihopis")) {
+								createKnihopis = false;
+								new TXmlText(CreateOrFindTextChild(idno), textIdno); //bind node with text field
+							} else if(idnoType.getNodeValue().equals("other_exemplar")) { //other_exemplar
+								new TOtherExemplar(idno, compositeOtherExemplars);
+							} else { //unknown
+								//TODO: deal with unknown
+								
+							}
+						} else {
+							//TODO: deal with unexpected bibl
 						}
 					} else { //literature - get text node
 						new TLiterature(bibl, compositeLiterature);
@@ -1222,7 +1268,7 @@ public class TXmlDocument {
 				}				
 			}			
 			
-			buttonAddExemplar.addSelectionListener(new AddOtherExemplarListener(listBibl, compositeOtherExemplars));
+			if(buttonAddExemplar != null) buttonAddExemplar.addSelectionListener(new AddOtherExemplarListener(listBibl, compositeOtherExemplars));
 			buttonAddLiterature.addSelectionListener(new AddLiteratureListener(listBibl, compositeLiterature));
 		}
 		
@@ -1343,25 +1389,32 @@ public class TXmlDocument {
 			new TXmlCombo(CreateOrFindTextChild(placeName), comboPlaceName);
 			
 			//provenance
+			if(masterDocument == null) {
+			  Node provenance = CreateOrFindChildByName(history, "provenance", origin);			
+			  Node provenanceP = CreateOrFindChildByName(provenance, "p");
+
 			
-			Node provenance = CreateOrFindChildByName(history, "provenance", origin);			
-			Node provenanceP = CreateOrFindChildByName(provenance, "p");
-			
-			new Label (composite, SWT.NONE).setText("Provenience");
-			Text textProvenance = new Text (composite, SWT.BORDER);
-			textProvenance.setLayoutData(gridData);
-			new TXmlText(CreateOrFindTextChild(provenanceP), textProvenance);
+				new Label (composite, SWT.NONE).setText("Provenience");
+				Text textProvenance = new Text (composite, SWT.BORDER);
+				textProvenance.setLayoutData(gridData);
+				new TXmlText(CreateOrFindTextChild(provenanceP), textProvenance);
+			}
 			
 			//origDate
 			
-			Node origDate = CreateOrFindChildByName(originP, "origDate");
+			Node origDate;
+			
+			if (isComposite) { //different location of origin date
+				origDate = CreateOrFindChildByName(msHeading, "origDate");
+			} else {
+        origDate = CreateOrFindChildByName(originP, "origDate"); 
+			}	
 						
 			new Label (composite, SWT.NONE).setText("Datace (slovnì)");
 			Text textOrigDate = new Text (composite, SWT.BORDER);
 			textOrigDate.setLayoutData(gridData);
 			new TXmlText(CreateOrFindTextChild(origDate), textOrigDate);
-			
-			
+					
 			new Label (composite, SWT.NONE).setText("Datace (meze)");
 			
 			Composite compositeOrigDate = new Composite(composite, SWT.NONE);
@@ -1390,11 +1443,12 @@ public class TXmlDocument {
 			Node acquisition = CreateOrFindChildByName(history, "acquisition");
 			Node acquisitionP = CreateOrFindChildByName(acquisition, "p");
 			
-			new Label (composite, SWT.NONE).setText("Pøírùstkové èíslo");
-			Text textAcquisition = new Text (composite, SWT.BORDER);
-			textAcquisition.setLayoutData(gridData);
-			new TXmlText(CreateOrFindTextChild(acquisitionP), textAcquisition);
-			
+      //if(masterDocument == null) {
+				new Label (composite, SWT.NONE).setText("Pøírùstkové èíslo");
+				Text textAcquisition = new Text (composite, SWT.BORDER);
+				textAcquisition.setLayoutData(gridData);
+				new TXmlText(CreateOrFindTextChild(acquisitionP), textAcquisition);
+      //}	
 			/*
 			<origin><p>
 			<!-- Zemì pùvodu -->
@@ -1414,11 +1468,11 @@ public class TXmlDocument {
 		Group gpPhysDesc;
 		Composite compositeTerms;
 		Composite compositeAddNext;
-		private GridData summGridData;
-		private GridData summGridData2;
+		private GridData summGridData, summGridData2, summGridData3;
 	
 		class TTermIllustration {
-			Composite composite;			
+			Composite composite;
+			
 			public TTermIllustration(final Node t) {
 				composite = new Composite(compositeTerms, SWT.NONE);
 				GridLayout gridLayout = new GridLayout(3, false); 
@@ -1468,11 +1522,13 @@ public class TXmlDocument {
 		}				
 		
 		public TPhysDesc(Node parent, Composite sibling) {
-			
+
 	  	summGridData = new GridData (SWT.BEGINNING, SWT.CENTER, false, false);
 	  	summGridData.widthHint = 100;
 	  	summGridData2 = new GridData (SWT.BEGINNING, SWT.CENTER, false, false);
-	  	summGridData2.widthHint = 240;			
+	  	summGridData2.widthHint = 240;
+	  	summGridData3 = new GridData (SWT.BEGINNING, SWT.CENTER, false, false);
+	  	summGridData3.widthHint = 600;
 			
 			GridLayout gridLayoutCompact = new GridLayout(2,false);
 			gridLayoutCompact.marginHeight = gridLayoutCompact.marginWidth = 0;			
@@ -1497,29 +1553,30 @@ public class TXmlDocument {
 			formData.left = new FormAttachment(0,0);
 			formData.right = new FormAttachment(100,0);
 			composite.setLayoutData(formData);
-			
-			//form
-			Node form = CreateOrFindChildByName(physDesc, "form");
-			form =  CreateOrFindChildByName(form, "p");
+			 
+			if(!isComposite) {  //physical description
+				//form
+				Node form = CreateOrFindChildByName(physDesc, "form");
+				form =  CreateOrFindChildByName(form, "p");
+					
+				new Label (composite, SWT.NONE).setText ("Typ pøedmìtu");
 				
-			new Label (composite, SWT.NONE).setText ("Typ pøedmìtu");
-			
-			Combo comboForm = new Combo (composite, SWT.NONE);
-			comboForm.setItems (new String [] {"Kniha - tisk", "Rukopis", "Strojopis"});
-			comboForm.setLayoutData(physGridData);			 
-			new TXmlCombo(CreateOrFindTextChild(form), comboForm);
-			
-			//support
-			Node support = CreateOrFindChildByName(physDesc, "support");
-			support =  CreateOrFindChildByName(support, "p");
+				Combo comboForm = new Combo (composite, SWT.NONE);
+			  comboForm.setItems (new String [] {"Kniha - tisk", "Rukopis", "Strojopis"});
+				comboForm.setLayoutData(physGridData);			 
+				new TXmlCombo(CreateOrFindTextChild(form), comboForm);
 				
-			new Label (composite, SWT.NONE).setText ("Materiál");
-			
-			Combo comboSupport = new Combo (composite, SWT.NONE);
-			comboSupport.setItems (new String [] {"Papír"});
-			comboSupport.setLayoutData(physGridData);			 
-			new TXmlCombo(CreateOrFindTextChild(support), comboSupport);
-			
+				//support
+				Node support = CreateOrFindChildByName(physDesc, "support");
+				support =  CreateOrFindChildByName(support, "p");
+					
+				new Label (composite, SWT.NONE).setText ("Materiál");
+				
+				Combo comboSupport = new Combo (composite, SWT.NONE);
+				comboSupport.setItems (new String [] {"Papír"});
+				comboSupport.setLayoutData(physGridData);			 
+				new TXmlCombo(CreateOrFindTextChild(support), comboSupport);
+			}
 			//extent
 			
 			new Label (composite, SWT.NONE).setText ("Poèet stran");
@@ -1539,98 +1596,104 @@ public class TXmlDocument {
 			new Label (composite, SWT.NONE).setText ("Formát");
 			
 			Node extentDim = CreateOrFindChildByName(extent, "dimensions");
-			CreateOrSetAttribute((Element)extentDim, "scope", "all");
+			if (isComposite) {  //dimensions
+				CreateOrSetAttribute((Element)extentDim, "scope", "most");
+			} else {
+				CreateOrSetAttribute((Element)extentDim, "scope", "all");
+			}			
 			CreateOrSetAttribute((Element)extentDim, "type", "leaf");
 			CreateOrSetAttribute((Element)extentDim, "units", "mm");
 			
 			Combo comboExtentDim = new Combo (composite, SWT.NONE);
 			comboExtentDim.setItems (new String [] {"Jednolist", "8°.", "16°.", "24°."});
 			comboExtentDim.setLayoutData(physGridData);			 			
-			new TXmlCombo(CreateOrFindTextChild(extentDim), comboExtentDim);
+			new TXmlCombo(CreateFirstOrFindTextChild(extentDim), comboExtentDim);
 			
-			//layout
-			new Label (composite, SWT.NONE).setText ("Dispozice");
-			
-			Node layout = CreateOrFindChildByName(physDesc, "layout"); 
-			Node layoutP = CreateOrFindChildByName(layout, "p");
-			
-			Combo combolayoutP = new Combo (composite, SWT.NONE);
-			combolayoutP.setItems (new String [] {"Tištìno per extensum.", "Tištìno ve dvou sloupcích.", "Tištìno ve tøech sloupcích."});
-			combolayoutP.setLayoutData(physGridData);			 
-			new TXmlCombo(CreateFirstOrFindTextChild(layoutP), combolayoutP);
-			
-			//dimension
-			new Label (composite, SWT.NONE).setText ("Zrcadlo tisku");
-			new TDimensions(composite, CreateOrFindChildByName(layoutP, "dimensions"));
-			
-			//msWriting
-			new Label (composite, SWT.NONE).setText ("Písmo");
-			Node msWriting = CreateOrFindChildByName(physDesc, "msWriting");
-			Node msWritingP = CreateOrFindChildByName(msWriting, "p");
-			
-			Combo comboWritingP = new Combo (composite, SWT.NONE);
-			comboWritingP.setItems (new String [] {"Gotika", "Latinka"});
-			comboWritingP.setLayoutData(physGridData);			 
-			new TXmlCombo(CreateFirstOrFindTextChild(msWritingP), comboWritingP);
-			
-			//decoration
-			
-			new Label (composite, SWT.NONE).setText ("Výzdoba");
-			Node decoration = CreateOrFindChildByName(physDesc, "decoration");
-			Node decorationDecoNote = CreateOrFindChildByName(decoration, "decoNote");
-			Node decorationDecoNoteP = CreateOrFindChildByName(decorationDecoNote, "p");
-			
-			Text textDecoNoteP = new Text (composite, SWT.BORDER);
-			textDecoNoteP.setLayoutData(gridData);
-			new TXmlText(CreateFirstOrFindTextChild(decorationDecoNoteP), textDecoNoteP); //corrected 0.9.1
-			
-		  //dimension
-			new Label (composite, SWT.NONE).setText ("Rozmì výzdoby");
-			new TDimensions(composite, CreateOrFindChildByName(decorationDecoNoteP, "dimensions"));
-			
-			//button for adding illustration references 
-			
-	  	compositeTerms = new Composite(gpPhysDesc, SWT.NONE);
-			formData = new FormData();			
-			formData.top = new FormAttachment(composite);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			compositeTerms.setLayoutData(formData);
+			if(!isComposite) { //physical description
+				//layout
+				new Label (composite, SWT.NONE).setText ("Dispozice");
+				
+				Node layout = CreateOrFindChildByName(physDesc, "layout"); 
+				Node layoutP = CreateOrFindChildByName(layout, "p");
+				
+				Combo combolayoutP = new Combo (composite, SWT.NONE);
+				combolayoutP.setItems (new String [] {"Tištìno per extensum.", "Tištìno ve dvou sloupcích.", "Tištìno ve tøech sloupcích."});
+				combolayoutP.setLayoutData(physGridData);			 
+				new TXmlCombo(CreateFirstOrFindTextChild(layoutP), combolayoutP);
 
-			RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
-			rowLayout.spacing = 5;
-			rowLayout.marginHeight = rowLayout.marginWidth = 2; 
-			compositeTerms.setLayout(rowLayout);			
 			
-			Node termIllustration = FindChildByNameAndAttribute(decorationDecoNoteP, "term", "type", "illustration");						
-			while(termIllustration != null) {							
-			  if(termIllustration.getNodeName().equals("term")) {			  	
-			  	Attr a = ((Element)termIllustration).getAttributeNode("type");
-					if(a != null) {
-						if(a.getNodeValue().equals("illustration")) {
-							new TTermIllustration(termIllustration);
-						}
-					} 			  				  				  	
-			  }
-			  termIllustration = termIllustration.getNextSibling();
-			}			
-			
-			
-			
-			compositeAddNext = new Composite(gpPhysDesc, SWT.NONE);
-			formData = new FormData();			
-			formData.top = new FormAttachment(compositeTerms);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			compositeAddNext.setLayoutData(formData);			
-			compositeAddNext.setLayout(new GridLayout(2, false));
-			
-			Label labelAddIllustrationRef = new Label (compositeAddNext, SWT.NONE);
-			labelAddIllustrationRef.setText ("Odkaz na ilustraci");
-			Button buttonAddIllustrationRef = new Button(compositeAddNext, SWT.PUSH);
-			buttonAddIllustrationRef.setText("pøidat ...");
-			buttonAddIllustrationRef.addSelectionListener(new AddIllustrationRefListener(decorationDecoNoteP));
-			
+  			//dimension
+	  		new Label (composite, SWT.NONE).setText ("Zrcadlo tisku");
+		  	new TDimensions(composite, CreateOrFindChildByName(layoutP, "dimensions"));
+
+		  	//msWriting
+				new Label (composite, SWT.NONE).setText ("Písmo");
+				Node msWriting = CreateOrFindChildByName(physDesc, "msWriting");
+				Node msWritingP = CreateOrFindChildByName(msWriting, "p");
+				
+				Combo comboWritingP = new Combo (composite, SWT.NONE);
+				comboWritingP.setItems (new String [] {"Gotika", "Latinka"});
+				comboWritingP.setLayoutData(physGridData);			 
+				new TXmlCombo(CreateFirstOrFindTextChild(msWritingP), comboWritingP);
+				
+				//decoration
+				
+				new Label (composite, SWT.NONE).setText ("Výzdoba");
+				Node decoration = CreateOrFindChildByName(physDesc, "decoration");
+				Node decorationDecoNote = CreateOrFindChildByName(decoration, "decoNote");
+				Node decorationDecoNoteP = CreateOrFindChildByName(decorationDecoNote, "p");
+				
+				Text textDecoNoteP = new Text (composite, SWT.BORDER);
+				textDecoNoteP.setLayoutData(gridData);
+				new TXmlText(CreateFirstOrFindTextChild(decorationDecoNoteP), textDecoNoteP); //corrected 0.9.1
+				
+			  //dimension
+				new Label (composite, SWT.NONE).setText ("Rozmìr výzdoby");
+				new TDimensions(composite, CreateOrFindChildByName(decorationDecoNoteP, "dimensions"));
+				
+				//button for adding illustration references 
+				
+		  	compositeTerms = new Composite(gpPhysDesc, SWT.NONE);
+				formData = new FormData();			
+				formData.top = new FormAttachment(composite);
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				compositeTerms.setLayoutData(formData);
+	
+				RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
+				rowLayout.spacing = 5;
+				rowLayout.marginHeight = rowLayout.marginWidth = 2; 
+				compositeTerms.setLayout(rowLayout);			
+				
+				Node termIllustration = FindChildByNameAndAttribute(decorationDecoNoteP, "term", "type", "illustration");						
+				while(termIllustration != null) {							
+				  if(termIllustration.getNodeName().equals("term")) {			  	
+				  	Attr a = ((Element)termIllustration).getAttributeNode("type");
+						if(a != null) {
+							if(a.getNodeValue().equals("illustration")) {
+								new TTermIllustration(termIllustration);
+							}
+						} 			  				  				  	
+				  }
+				  termIllustration = termIllustration.getNextSibling();
+				}			
+				
+				
+				
+				compositeAddNext = new Composite(gpPhysDesc, SWT.NONE);
+				formData = new FormData();			
+				formData.top = new FormAttachment(compositeTerms);
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				compositeAddNext.setLayoutData(formData);			
+				compositeAddNext.setLayout(new GridLayout(2, false));
+				
+				Label labelAddIllustrationRef = new Label (compositeAddNext, SWT.NONE);
+				labelAddIllustrationRef.setText ("Odkaz na ilustraci");
+				Button buttonAddIllustrationRef = new Button(compositeAddNext, SWT.PUSH);
+				buttonAddIllustrationRef.setText("pøidat ...");
+				buttonAddIllustrationRef.addSelectionListener(new AddIllustrationRefListener(decorationDecoNoteP));
+			}
 			
 			
 			//condition
@@ -1640,8 +1703,24 @@ public class TXmlDocument {
 			
 			Combo comboConditionP = new Combo (composite, SWT.NONE);
 			comboConditionP.setItems (new String [] {"Stav dobrý", "Restaurováno", "Poškozeno", "Velmi poškozeno"});
-			comboConditionP.setLayoutData(physGridData);			 
-			new TXmlCombo(CreateFirstOrFindTextChild(conditionP), comboConditionP);
+		  comboConditionP.setLayoutData(summGridData3);
+		  SetWidth(comboConditionP, 600);
+		  new TXmlCombo(CreateFirstOrFindTextChild(conditionP), comboConditionP);
+			
+			/*
+			if(isComposite) {
+				Text textConditionP = new Text (composite, SWT.BORDER);
+				textConditionP.setLayoutData(summGridData3);
+				SetWidth(textConditionP, 600);
+				new TXmlText(CreateFirstOrFindTextChild(conditionP), textConditionP);
+			} else {
+				Combo comboConditionP = new Combo (composite, SWT.NONE);
+  			comboConditionP.setItems (new String [] {"Stav dobrý", "Restaurováno", "Poškozeno", "Velmi poškozeno"});
+			  comboConditionP.setLayoutData(physGridData);			 
+			  new TXmlCombo(CreateFirstOrFindTextChild(conditionP), comboConditionP);				
+			}
+			*/
+			PackAndSetExtends();
 		}
 	}
 	
@@ -1682,7 +1761,7 @@ public class TXmlDocument {
 			mParent = parent; mComposite = p; Content = c;
 		}
 		@Override public void widgetSelected(SelectionEvent e) {
-			WasEdited = true; 
+			SetWasEdited();
 			msSubItemIndex++;
 			Node msSubItem = mParent.appendChild(document.createElement("msItem"));
 			CreateOrSetAttribute((Element)msSubItem,"n","1."+msSubItemIndex);
@@ -1719,7 +1798,7 @@ public class TXmlDocument {
 	      messageBox.setText("Odebrat?");
 	      int response = messageBox.open();
 	      if (response == SWT.YES) {
-	      	WasEdited = true; 
+	      	SetWasEdited(); 
 	      	for(int i = Index; i < msSubItemIndex; i++) {
 						TmsSubItem si = Content.msSubItems.get(i);
 						si.UpdateIndex(si.Index-1);
@@ -1795,7 +1874,7 @@ public class TXmlDocument {
 				Title = msItem1.insertBefore(document.createElement("title"), Title);				
 			}
 			Title = CreateOrFindTextChild(Title);
-			new Label (composite, SWT.NONE).setText ("Titul v pøepisu");
+			new Label (composite, SWT.NONE).setText("Titul v pøepisu");
 			Text textHeadingTitle = new Text (composite, SWT.BORDER);
 			textHeadingTitle.setBackground(defaultColor);
 			textHeadingTitle.setLayoutData(gridData);
@@ -1938,6 +2017,290 @@ public class TXmlDocument {
 			comboNoteStrophes.setBackground(defaultColor);
 		}
 	};
+	
+
+	
+	
+	class TmsParts {
+		Group gpTmsParts;
+		Node msDescription;
+		private int msPartIndex;
+		Button btAddFirst;
+		GridData gd;
+		ArrayList<TOtherMsPart> msParts;
+		Composite lParent;
+		private Composite composite;
+		
+		class OpenMsPart implements SelectionListener {
+			final Node msPartToOpen;
+			public OpenMsPart(Node msPart) {
+				msPartToOpen = msPart;		
+			}
+			@Override public void widgetSelected(SelectionEvent e) {
+	      //look for open sub items		
+				for (TXmlDocument xd : xmlSubDocuments) {
+					if(xd.GetMsPart() == msPartToOpen) {
+						TabItem lTabItem = xd.getTabItem();
+						//show sub item
+						MainHolder.getTabFolder().setSelection(lTabItem); //show new tab, no event!		
+						MainHolder.FindSelectedXmlDocument(lTabItem);     //because missing select event!
+	    			return;									
+					}
+				}
+				//open new sub item
+				new TXmlDocument(MainHolder, thisDocument, msPartToOpen);
+			}				
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);					
+			}				
+		};		
+		
+		class DeleteMsPart implements SelectionListener {
+			final TOtherMsPart thisToDelete;
+			public DeleteMsPart(TOtherMsPart toDelete) {
+				thisToDelete = toDelete;
+			}
+			@Override public void widgetSelected(SelectionEvent e) {
+				
+				MessageBox messageBox = new MessageBox(MainHolder.getShell(), SWT.ICON_WARNING
+	          | SWT.YES | SWT.NO);
+	      messageBox.setMessage("Pøívazek bude smazán. Pokraèovat?");
+	      messageBox.setText("Odebrat?");
+	      int response = messageBox.open();
+	      if (response == SWT.YES) {
+				
+		      //look for sub items to close		
+					for (TXmlDocument xd : xmlSubDocuments) {
+						if(xd.GetMsPart() == thisToDelete.thisMsPart) {
+							//close
+							xd.closeDocument();
+							break;
+						}
+					}
+					//re-index and rearrange
+					boolean found = false;
+					Control prev = null;
+					for (TOtherMsPart oms : msParts) {
+						if (found) {
+							oms.ChangeMyIndex(-1, true);
+							oms.AttachTo(prev);
+							prev = oms.container;
+						} else {
+							if(oms == thisToDelete) {
+								found = true;
+							} else {
+							  prev = oms.container;
+							}
+						}	
+					}		
+										
+  				FormData formData = new FormData();
+					if(prev != null) formData.top = new FormAttachment(prev);
+					formData.left = new FormAttachment(0,0);
+					btAddFirst.setLayoutData(formData);
+					
+					//delete all				
+					thisToDelete.dispose();
+					PackAndSetExtends();
+	      }
+			}				
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);					
+			}				
+		};		
+		
+		class AddMsPart implements SelectionListener {
+			final TOtherMsPart beforeThisAdd;
+			public AddMsPart(TOtherMsPart toAdd) {
+				beforeThisAdd = toAdd;
+			}
+			@Override public void widgetSelected(SelectionEvent e) {
+				//find msPart
+				
+				Node msPart = document.createElement("msPart");	
+				Node msIdno = CreateOrFindChildByName(msPart, "idno");
+				msIdno = CreateOrFindTextChild(msIdno);				
+				
+				TOtherMsPart newMsPart;
+				
+				if(beforeThisAdd == null) { //last item
+					int newIdx = msParts.size()+1; 
+					msDescription.appendChild(msPart);
+					msIdno.setTextContent(idnoXmlText.text.getText() + "/" + Integer.toString(newIdx));
+					newMsPart = new TOtherMsPart(msPart, msParts.size() > 0 ? msParts.get(msParts.size()-1).container : null, newIdx);
+					msParts.add(newMsPart);
+				} else {
+					int newIdx = msParts.indexOf(beforeThisAdd);
+					msDescription.insertBefore(msPart, beforeThisAdd.thisMsPart);
+					msIdno.setTextContent(idnoXmlText.text.getText() + "/" + Integer.toString(beforeThisAdd.myIndex));
+					newMsPart = new TOtherMsPart(msPart, newIdx > 0 ? msParts.get(newIdx-1).container : null, beforeThisAdd.myIndex);
+					msParts.add(msParts.indexOf(beforeThisAdd), newMsPart);
+				}	
+				//re-index and rearrange
+				boolean found = false;
+				Control prev = null;
+				for (TOtherMsPart oms : msParts) {
+					if (found) {
+						oms.ChangeMyIndex(1, true);
+						oms.AttachTo(prev);
+						prev = oms.container;
+					} else {
+						found = oms == newMsPart;
+					}					
+					prev = oms.container;
+				}
+				if(prev != null) {					
+					FormData formData = new FormData();
+					formData.top = new FormAttachment(prev);
+					formData.left = new FormAttachment(0,0);
+					btAddFirst.setLayoutData(formData);
+				}
+				PackAndSetExtends();		
+				SetWasEdited();
+			}				
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);					
+			}				
+		}
+		
+		class TOtherMsPart {
+			Composite container;
+			final Node thisMsPart;
+			int myIndex; 
+			
+			void ChangeMyIndex(int value, boolean relative) {
+				if(relative) {
+					myIndex = myIndex + value;
+				} else {
+					myIndex = value;
+				}
+				CreateOrSetAttribute((Element)thisMsPart,"n",Integer.toString(myIndex));
+			}
+			
+			public void dispose() {
+				msParts.remove(this);
+				container.dispose();				
+				thisMsPart.getParentNode().removeChild(thisMsPart);
+				SetWasEdited();
+			}
+
+			void AttachTo(Control toAttach) {
+				FormData formData = new FormData();
+				if(toAttach != null) formData.top = new FormAttachment(toAttach);
+				formData.left = new FormAttachment(0,0);
+				formData.right = new FormAttachment(100,0);
+				container.setLayoutData(formData);
+			}
+			
+			public TOtherMsPart(Node msPart, Control sibling, int index) {
+				thisMsPart = msPart;
+				container = new Composite(composite , SWT.NONE);				
+				AttachTo(sibling);
+				container.setLayout(new GridLayout(4,false));
+				
+				Node msIdno = CreateOrFindChildByName(msPart, "idno");
+				Node msIdnoText = CreateOrFindTextChild(msIdno);
+				
+				Text textIdno = new Text (container, SWT.BORDER);
+				textIdno.setLayoutData(gd);
+				new TXmlText(msIdnoText, textIdno); //TODO: Change tab name 					
+
+				ChangeMyIndex(index, false);
+
+				Button btOpen = new Button(container, SWT.PUSH);			
+				btOpen.setText("Otevøít ...");
+				btOpen.addSelectionListener(new OpenMsPart(msPart));
+				
+				Button btDelete = new Button(container, SWT.PUSH);			
+				btDelete.setText("Smazat ...");
+				btDelete.addSelectionListener(new DeleteMsPart(this));
+
+				Button btAdd = new Button(container, SWT.PUSH);			
+				btAdd.setText("Pøidat pøed ...");
+				btAdd.addSelectionListener(new AddMsPart(this));
+			}		
+		}		
+			
+		
+		
+		public TmsParts(Node parent, Composite sibling) {
+			msDescription = parent;
+			msParts = new ArrayList<TOtherMsPart>();
+			
+			gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+			gd.widthHint = 240;
+			
+			lParent = sibling.getParent();
+			
+			//create visual part
+			gpTmsParts = new Group(lParent, SWT.NONE); //gpMsDescription
+			FormData formData = new FormData();
+			formData.top = new FormAttachment(sibling);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			gpTmsParts.setLayoutData(formData);
+			gpTmsParts.setLayout(new FormLayout());
+			gpTmsParts.setText("Pøívazky");
+			
+			composite = new Composite(gpTmsParts, SWT.NONE);			
+			formData = new FormData();
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			composite.setLayoutData(formData);						
+			composite.setLayout(new FormLayout());
+			/*
+			Composite compositeButton = new Composite(composite, SWT.NONE);
+			formData = new FormData();
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			compositeButton.setLayoutData(formData);						
+			compositeButton.setLayout(new GridLayout(1, false));
+			*/			
+			
+			Control prevControl = null;
+			
+			//find all msParts
+			Node msPart = GetFirstChildByName(msDescription, "msPart");
+			while(msPart != null) {  			
+				if(msPart.getNodeName().equals("msPart")) {
+					msPartIndex++;
+					
+					TOtherMsPart Part = new TOtherMsPart(msPart, prevControl, msPartIndex); 
+					msParts.add(Part); 
+					prevControl = Part.container;
+					
+					/*
+					Text textIdno = new Text (composite, SWT.BORDER);
+					new TXmlText(msIdno, textIdno); //TODO: Change tab name 					
+					
+					CreateOrSetAttribute((Element)msPart,"n",Integer.toString(msPartIndex));
+					Button btOpen = new Button(composite, SWT.PUSH);			
+					btOpen.setText("Otevøít ...");
+					btOpen.addSelectionListener(new OpenMsPart(msPart));
+					
+					Button btDelete = new Button(composite, SWT.PUSH);			
+					btDelete.setText("Smazat ...");
+
+					Button btAdd = new Button(composite, SWT.PUSH);			
+					btAdd.setText("Pøidat za ...");
+					*/
+				}
+				msPart = msPart.getNextSibling();
+			}
+
+			btAddFirst = new Button(composite, SWT.PUSH);
+			btAddFirst.setText("Pøidat pøívazek ...");
+			btAddFirst.addSelectionListener(new AddMsPart(null));
+
+			formData = new FormData();
+			formData.top = new FormAttachment(prevControl);
+			formData.left = new FormAttachment(0,0);
+			//formData.right = new FormAttachment(100,0);
+			btAddFirst.setLayoutData(formData);			
+			
+			/**/
+		}
+	}
 	
 	class TContent {
 		Node msDescription;
@@ -2304,7 +2667,7 @@ public class TXmlDocument {
 		GridData summGridData2;
 		GridData summGridData3;
 		GridData summGridData4;
-		Boolean searchSummary = true;
+		Boolean searchSummary = true;		
 		Color bgColor;
 		
 		class TTerm {
@@ -2476,10 +2839,121 @@ public class TXmlDocument {
 		}
 	}
 	
+	class TResponsibilities {
+		private Composite compositeResp;
+		public TResponsibilities(Node parent, Composite sibling) {
+			Node printer = null; //this is exception
+			
+			Composite compositePrinter = new Composite(sibling.getParent(), SWT.NONE); //gpMsHeading
+			FormData formData = new FormData();			
+			formData.top = new FormAttachment(sibling);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			compositePrinter.setLayoutData(formData);
+			compositePrinter.setLayout(new FillLayout());
+				
+  		compositeResp = new Composite(sibling.getParent(), SWT.NONE);
+			formData = new FormData();			
+			formData.top = new FormAttachment(compositePrinter);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			compositeResp.setLayoutData(formData);
+			compositeResp.setLayout(new FillLayout(SWT.VERTICAL));
+			
+			dummyLabel = new Label(compositeResp, SWT.NONE);		
+			
+			Node respStmt = parent.getFirstChild();
+			while(respStmt != null) {
+				if(respStmt.getNodeName().equals("respStmt")) {
+				  Node respStmtName = GetFirstChildByName(respStmt, "name");
+				  if(respStmtName != null) {
+					  Attr attrRole = ((Element) respStmtName).getAttributeNode("role");
+					  if(attrRole != null && attrRole.getValue().equals("printer")) {
+					  	printer = respStmt; 
+					  } else {
+					  	//create special role
+					  	new TResponsibilitiesStatement(compositeResp, respStmt);
+					  }
+				  }
+				}
+				respStmt = respStmt.getNextSibling();
+			}
+						
+			new TPrinter(compositePrinter, printer, parent);
+			
+			GridLayout gridLayoutCompact = new GridLayout(3,false);
+			gridLayoutCompact.marginHeight = gridLayoutCompact.marginWidth = 0;
+			GridData lgridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
+			lgridData.minimumWidth = 75;		
+			
+			Composite composite = new Composite(sibling.getParent(),SWT.NONE);
+			composite.setLayout(gridLayoutCompact);
+			formData = new FormData();
+			formData.top = new FormAttachment(compositeResp);
+			formData.left = new FormAttachment(0,0);
+			formData.right = new FormAttachment(100,0);
+			composite.setLayoutData(formData);
+  		//button for adding responsibilities
+			Label labelAddResp = new Label (composite, SWT.NONE);
+			labelAddResp.setText ("Další odpovìdnost");
+			Button buttonAddResp = new Button(composite, SWT.PUSH);
+			buttonAddResp.setText("pøidat ...");
+			buttonAddResp.addSelectionListener(new AddRespButtonListener(compositeResp, parent));			
+		}
+	}
+	
+	void CreateTitle(Node parent, Composite compParent) {
+		Node msHeadingTitle	= CreateOrFindChildByName(parent, "title");
+		msHeadingTitle = CreateOrFindTextChild(msHeadingTitle);
+		new Label (compParent, SWT.NONE).setText (isComposite ? "Název konvolutu" : "Titul v pøepisu");
+		Text textHeadingTitle = new Text (compParent, SWT.BORDER);
+		textHeadingTitle.setLayoutData(gridData);
+		new TXmlText(msHeadingTitle, textHeadingTitle);
+	}
+	
+	class TAuthors {
+		private Composite compositeAuth;
+		public TAuthors(Node parent, Composite compParent) {
+			compositeAuth = compParent;
+			if(!isComposite) { //author
+				Node msHeadingAutor	= CreateOrFindChildByName(parent, AUTHOR);
+				Node msHeadingAutorText = CreateOrFindTextChild(msHeadingAutor);
+				new Label (compositeAuth, SWT.NONE).setText ("Autor");
+				Text textHeadingAutor = new Text (compositeAuth, SWT.BORDER);
+				textHeadingAutor.setLayoutData(gridData);
+				new TXmlText(msHeadingAutorText, textHeadingAutor);
+				//button for adding authors
+				Label labelAddAuthor = new Label (compositeAuth, SWT.NONE);
+				labelAddAuthor.setText ("Další autor");
+				Button buttonAddAuthor = new Button(compositeAuth, SWT.PUSH);
+				buttonAddAuthor.setText("pøidat ...");
+				buttonAddAuthor.addSelectionListener(new AddAutorButtonListener(compositeAuth, labelAddAuthor, parent));			
+				//get more authors	
+				msHeadingAutor = msHeadingAutor.getNextSibling();				
+				while(msHeadingAutor != null) {
+				  if(msHeadingAutor.getNodeName().equals(AUTHOR)) {
+				    new TOtherAuthor(compositeAuth, labelAddAuthor, msHeadingAutor);	
+				  }
+			    msHeadingAutor = msHeadingAutor.getNextSibling();
+				}			
+			}			
+		}
+	}
+	
+	private void AddLanguage(Node Parent, Composite composite) {
+		Node textLang = CreateOrFindChildByName(Parent, "textLang"); //msHeading
+		new Label(composite, SWT.NONE).setText("Jazyk dokumentu");
+		Combo comboLang = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
+		comboLang.setItems(new String[] {"èesky", "nìmecky", "latinsky", "slovensky", "polsky"});
+		Attr langAttr = CreateOrFindAttribute((Element) textLang, "langKey", "CZE");
+		textLang = CreateOrFindTextChild(textLang);
+		comboLang.setText(textLang.getNodeValue());
+		new TXmlNodeAttrCombo(textLang, langAttr, comboLang, LANGS_VAL, null);			
+	}	
+	
 	class TTeiHeaderFrame {	  
 	  Node  parentNode;
-		private Composite compositeResp;
-	  public TTeiHeaderFrame(Node p) {
+		public TTeiHeaderFrame(Node p) {
 	    parentNode = p;
 	    FormData formData;
 			GridLayout gridLayout = new GridLayout (2, false);
@@ -2489,7 +2963,7 @@ public class TXmlDocument {
 			Node fileDesc = CreateOrFindChildByName(parentNode, "fileDesc");
 			//title stmt
 			Node titleStmt = CreateOrFindChildByName(fileDesc, "titleStmt");    
-	    Group gpTitleStmt = new Group(composite, SWT.NONE);
+	    Group gpTitleStmt = new Group(compositeDoc, SWT.NONE);
 	    gpTitleStmt.setText("Popis záznamu");
 	    gpTitleStmt.setLayout(gridLayout);
 	    formData = new FormData();
@@ -2530,7 +3004,7 @@ public class TXmlDocument {
 			//---------------------------------------------------------------------------------------
 			//source description
 			Node sourceDesc = CreateOrFindChildByName(fileDesc, "sourceDesc");		
-			Group gpSourceDesc = new Group(composite, SWT.NONE);
+			Group gpSourceDesc = new Group(compositeDoc, SWT.NONE);
 			FormLayout formLayout = new FormLayout();
 			formLayout.marginHeight = formLayout.marginWidth = 4; 
 			formLayout.spacing = 4;
@@ -2590,7 +3064,9 @@ public class TXmlDocument {
 			  comboDocType.select(1);
 			}
 			*/
-			new TXmlAttrCombo(docStatus, comboDocType, new String [] {"uni", "compo"});			
+			new TXmlAttrCombo(docStatus, comboDocType, new String [] {"uni", "compo"});
+			isComposite = comboDocType.getSelectionIndex() > 0;
+			comboDocType.setEnabled(false); //it can't be changed!!
 			
 			//--------------------------------------------------------------------------
 			//msIdentifier
@@ -2633,14 +3109,14 @@ public class TXmlDocument {
 			new Label (gpMsIdentifier, SWT.NONE).setText ("Identifikaèní èíslo");
 			Text textIdno = new Text (gpMsIdentifier, SWT.BORDER);
 			textIdno.setLayoutData(gridData);
-			new TXmlText(idno, textIdno);	
-			
-			//-------------------------------------------------------------------
-			THistory History = new THistory(msDescription, gpMsIdentifier);
-			
-			//-------------------------------------------------------------------
+			idnoXmlText = new TXmlText(idno, textIdno);	
+
 			//msHeading
-			Node msHeading	= CreateOrFindChildByName(msDescription, "msHeading");
+			msHeading	= CreateOrFindChildByName(msDescription, "msHeading"); //needed before History for composite			
+			//-------------------------------------------------------------------			
+			THistory History = new THistory(msDescription, gpMsIdentifier);			
+			//-------------------------------------------------------------------
+
 			Group gpMsHeading = new Group(gpMsDescription, SWT.NONE);
 			formData = new FormData();
 			formData.top = new FormAttachment(History.gpHistory);//(gpMsIdentifier);
@@ -2657,86 +3133,45 @@ public class TXmlDocument {
 			composite.setLayoutData(formData);
 			
 			//title
+			CreateTitle(msHeading, composite);
+			/*
 			Node msHeadingTitle	= CreateOrFindChildByName(msHeading, "title");
 			msHeadingTitle = CreateOrFindTextChild(msHeadingTitle);
-			new Label (composite, SWT.NONE).setText ("Titul v pøepisu");
+			new Label (composite, SWT.NONE).setText (isComposite ? "Název konvolutu" : "Titul v pøepisu");
 			Text textHeadingTitle = new Text (composite, SWT.BORDER);
 			textHeadingTitle.setLayoutData(gridData);
 			new TXmlText(msHeadingTitle, textHeadingTitle);
+			*/
 			//author
-			Node msHeadingAutor	= CreateOrFindChildByName(msHeading, AUTHOR);
-			Node msHeadingAutorText = CreateOrFindTextChild(msHeadingAutor);
-			new Label (composite, SWT.NONE).setText ("Autor");
-			Text textHeadingAutor = new Text (composite, SWT.BORDER);
-			textHeadingAutor.setLayoutData(gridData);
-			new TXmlText(msHeadingAutorText, textHeadingAutor);
-			//button for adding authors
-			Label labelAddAuthor = new Label (composite, SWT.NONE);
-			labelAddAuthor.setText ("Další autor");
-			Button buttonAddAuthor = new Button(composite, SWT.PUSH);
-			buttonAddAuthor.setText("pøidat ...");
-			buttonAddAuthor.addSelectionListener(new AddAutorButtonListener(composite, labelAddAuthor, msHeading));			
-			//get more authors	
-			msHeadingAutor = msHeadingAutor.getNextSibling();				
-			while(msHeadingAutor != null) {
-			  if(msHeadingAutor.getNodeName().equals(AUTHOR)) {
-			    new TOtherAuthor(composite, labelAddAuthor, msHeadingAutor);	
-			  }
-		    msHeadingAutor = msHeadingAutor.getNextSibling();
-			}			
-			//responsibilities
-			Node printer = null; //this is exception
-			
-			Composite compositePrinter = new Composite(gpMsHeading, SWT.NONE);
-			formData = new FormData();			
-			formData.top = new FormAttachment(composite);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			compositePrinter.setLayoutData(formData);
-			compositePrinter.setLayout(new FillLayout());
-				
-  		compositeResp = new Composite(gpMsHeading, SWT.NONE);
-			formData = new FormData();			
-			formData.top = new FormAttachment(compositePrinter);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			compositeResp.setLayoutData(formData);
-			compositeResp.setLayout(new FillLayout(SWT.VERTICAL));
-			
-			dummyLabel = new Label(compositeResp, SWT.NONE);		
-			
-			Node respStmt = msHeading.getFirstChild();
-			while(respStmt != null) {
-				if(respStmt.getNodeName().equals("respStmt")) {
-				  Node respStmtName = GetFirstChildByName(respStmt, "name");
-				  if(respStmtName != null) {
-					  Attr attrRole = ((Element) respStmtName).getAttributeNode("role");
-					  if(attrRole != null && attrRole.getValue().equals("printer")) {
-					  	printer = respStmt; 
-					  } else {
-					  	//create special role
-					  	new TResponsibilitiesStatement(compositeResp, respStmt);
-					  }
+			new TAuthors(msHeading, composite);
+			/*
+			if(!isComposite) { //author
+				Node msHeadingAutor	= CreateOrFindChildByName(msHeading, AUTHOR);
+				Node msHeadingAutorText = CreateOrFindTextChild(msHeadingAutor);
+				new Label (composite, SWT.NONE).setText ("Autor");
+				Text textHeadingAutor = new Text (composite, SWT.BORDER);
+				textHeadingAutor.setLayoutData(gridData);
+				new TXmlText(msHeadingAutorText, textHeadingAutor);
+				//button for adding authors
+				Label labelAddAuthor = new Label (composite, SWT.NONE);
+				labelAddAuthor.setText ("Další autor");
+				Button buttonAddAuthor = new Button(composite, SWT.PUSH);
+				buttonAddAuthor.setText("pøidat ...");
+				buttonAddAuthor.addSelectionListener(new AddAutorButtonListener(composite, labelAddAuthor, msHeading));			
+				//get more authors	
+				msHeadingAutor = msHeadingAutor.getNextSibling();				
+				while(msHeadingAutor != null) {
+				  if(msHeadingAutor.getNodeName().equals(AUTHOR)) {
+				    new TOtherAuthor(composite, labelAddAuthor, msHeadingAutor);	
 				  }
-				}
-				respStmt = respStmt.getNextSibling();
+			    msHeadingAutor = msHeadingAutor.getNextSibling();
+				}			
 			}
-						
-			new TPrinter(compositePrinter, printer, msHeading);
+			*/
+			//responsibilities
 			
-			composite = new Composite(gpMsHeading,SWT.NONE);
-			composite.setLayout(gridLayoutCompact);
-			formData = new FormData();
-			formData.top = new FormAttachment(compositeResp);
-			formData.left = new FormAttachment(0,0);
-			formData.right = new FormAttachment(100,0);
-			composite.setLayoutData(formData);
-  		//button for adding responsibilities
-			Label labelAddResp = new Label (composite, SWT.NONE);
-			labelAddResp.setText ("Další zodpovìdnost");
-			Button buttonAddResp = new Button(composite, SWT.PUSH);
-			buttonAddResp.setText("pøidat ...");
-			buttonAddResp.addSelectionListener(new AddRespButtonListener(compositeResp, msHeading));
+			new TResponsibilities(msHeading, composite);
+			
 			/*
 			composite = new Composite(gpMsHeading, SWT.NONE);
 			composite.setLayout(gridLayout);
@@ -2746,6 +3181,9 @@ public class TXmlDocument {
 			formData.right = new FormAttachment(100,0);	
 			composite.setLayoutData(formData);					
 			*/
+			
+			AddLanguage(msHeading, composite);
+			/*
 			Node textLang = CreateOrFindChildByName(msHeading, "textLang");
 			new Label(composite, SWT.NONE).setText("Jazyk dokumentu");
 			Combo comboLang = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -2753,13 +3191,21 @@ public class TXmlDocument {
 			Attr langAttr = CreateOrFindAttribute((Element) textLang, "langKey", "CZE");
 			textLang = CreateOrFindTextChild(textLang);
 			comboLang.setText(textLang.getNodeValue());
-			new TXmlNodeAttrCombo(textLang, langAttr, comboLang, LANGS_VAL, null);			
+			new TXmlNodeAttrCombo(textLang, langAttr, comboLang, LANGS_VAL, null);	
+			*/		
 		  //-------------------------------------------------------------------
 			//msContent
-			TContent Content = new TContent(msDescription, gpMsHeading);
+			TContent Content = null;
+			TmsParts msParts = null;
+			if(isComposite) { //each msPart has own msContent
+				//process msPart
+				msParts = new TmsParts(msDescription, gpMsHeading);				
+			} else {
+			  Content = new TContent(msDescription, gpMsHeading);
+			}
 			//-------------------------------------------------------------------
-			//physDesc
-			TPhysDesc PhysDesc = new TPhysDesc(msDescription, Content.gpMsContent);
+			//physDesc 
+			TPhysDesc PhysDesc = new TPhysDesc(msDescription, isComposite ? msParts.gpTmsParts : Content.gpMsContent);
 			//-------------------------------------------------------------------
 			//additional			
 			/*TAdditional Additional = */new TAdditional(msDescription, PhysDesc.gpPhysDesc);
@@ -2790,36 +3236,174 @@ public class TXmlDocument {
     }
 	}
 	
-  public TXmlDocument(TMainHolder mh, String url) {
+  public void SetWidth(Control c, int i) {
+		org.eclipse.swt.graphics.Rectangle temp = c.getBounds();
+		temp.width = i;
+		c.setBounds(temp);	
+	}
+
+  private void Init() {
   	msSubItemIndex = 0; 
   	WasEdited = false;
   	lastEditedMultiLineText = null;
-		MainHolder = mh;
-		
-		SubItemsColors = new Color [6];
+  	myMsPart = null;
+  	masterDocument = null;
+  	
+  	SubItemsColors = new Color [6];
 		SubItemsColors[0] = new Color(MainHolder.getDisplay(),255,224,224);
 		SubItemsColors[1] = new Color(MainHolder.getDisplay(),255,255,224);
 		SubItemsColors[2] = new Color(MainHolder.getDisplay(),224,255,224);
 		SubItemsColors[3] = new Color(MainHolder.getDisplay(),224,255,255);
 		SubItemsColors[4] = new Color(MainHolder.getDisplay(),224,224,255);
 		SubItemsColors[5] = new Color(MainHolder.getDisplay(),255,224,255);
+  }
+  
+  private void AfterInit() {
+	  FormLayout formLayout = new FormLayout (); 
+	  formLayout.marginHeight = formLayout.marginWidth = 8;
+	  compositeDoc.setLayout(formLayout);
+	  
+	  MainHolder.getTabFolder().setSelection(tabItem); //show new tab, no event!		
+	  MainHolder.FindSelectedXmlDocument(tabItem);     //because missing select event!	   	
+  }
+  
+  
+  public TXmlDocument(TMainHolder mh, TXmlDocument master, Node yourMsPart) {
+  	MainHolder = mh;  	
+  	thisDocument = this;
+  	document = master.document;
+  	Init();
+  	
+  	mh.AddXmlDocument(this); //register to holder
+  	
+  	xmlSubDocuments = null;
+  	masterDocument = master;
+  	masterDocument.xmlSubDocuments.add(this); //register at master
+  	myMsPart = yourMsPart;
+		msHeading = myMsPart;  	
+  	
+  	tabItem = new TabItem(mh.getTabFolder(), 0); 
+  	
+		Node msIdno = GetFirstChildByName(myMsPart, "idno");
+		msIdno = CreateOrFindTextChild(msIdno);
+  	
+		tabItem.setText(msIdno != null ? msIdno.getNodeValue() : "Nedefinováno");
+		tabItem.setToolTipText(masterDocument.documentUrl);	
+  	
+  	scrolledComposite = new ScrolledComposite(MainHolder.getTabFolder(), SWT.H_SCROLL | SWT.V_SCROLL ); //| SWT.BORDER
+	  compositeDoc = new Composite(scrolledComposite, SWT.NONE);
+	  
+	  AfterInit();
+	 	  
+	  FormLayout formLayout = new FormLayout();
+		formLayout.marginHeight = formLayout.marginWidth = 4; 
+		formLayout.spacing = 4;
+	  
+	  Group gpMsPart= new Group(compositeDoc, SWT.NONE);
+	  //gpMsPart.setText("test");
+		gpMsPart.setLayout(new FillLayout(SWT.HORIZONTAL));	  
+		FormData formData = new FormData();
+		//formData.top = new FormAttachment(0,0);
+		formData.left = new FormAttachment(0,0);
+		formData.right = new FormAttachment(100,0);			
+		gpMsPart.setLayoutData(formData);
 		
+	  Button btBack = new Button(gpMsPart, SWT.PUSH);
+	  btBack.setText("Návrat do konvolutu ...");
+	  btBack.addSelectionListener(new SelectionListener() {			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+        TabItem lTabItem = masterDocument.getTabItem();
+				//show master document
+				MainHolder.getTabFolder().setSelection(lTabItem); //show new tab, no event!		
+				MainHolder.FindSelectedXmlDocument(lTabItem);     //because missing select event!
+			}				
+			@Override	public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);	
+			}
+		});
+
+	  
+	  
+		//new Label(gpMsPart, SWT.NONE).setText("pokus");
 		
+  	//-------------------------------------------------------------------
+		//history
+		THistory History = new THistory(myMsPart, gpMsPart);	  
+	  
+		GridLayout gridLayoutCompact = new GridLayout(2,false);
+		gridLayoutCompact.marginHeight = gridLayoutCompact.marginWidth = 0;
+		GridData lgridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
+		lgridData.minimumWidth = 75;
+		
+    Group gpResponsibilities = new Group(compositeDoc, SWT.NONE);
+		formData = new FormData();
+		formData.top = new FormAttachment(History.gpHistory);
+		formData.left = new FormAttachment(0,0);
+		formData.right = new FormAttachment(100,0);
+		gpResponsibilities.setLayoutData(formData);
+		gpResponsibilities.setLayout(formLayout);
+		
+		Composite composite = new Composite(gpResponsibilities, SWT.NONE);
+		composite.setLayout(gridLayoutCompact);
+		formData = new FormData();
+		formData.left = new FormAttachment(0,0);
+		formData.right = new FormAttachment(100,0);
+		composite.setLayoutData(formData);
+		
+		Node msContent	= CreateOrFindChildByName(myMsPart, "msContents");
+		Node msItem = CreateOrFindChildByName(msContent, "msItem");
+
+		
+  	//title
+		CreateTitle(msItem, composite);
+		
+		//-------------------------------------------------------------------
+		//authors		
+		new TAuthors(msItem, composite);		
+		
+		//lang
+		AddLanguage(msItem, composite);		
+		
+		//-------------------------------------------------------------------
+		//responsibilities
+		new TResponsibilities(msItem, composite);		
+		
+  	//---------------------------------------------------------------------------------------
+		//Content							
+		TContent Content = new TContent(myMsPart, gpResponsibilities);
+	  
+  	//-------------------------------------------------------------------
+		//physDesc 
+		TPhysDesc PhysDesc = new TPhysDesc(myMsPart, Content.gpMsContent);
+		
+  	//-------------------------------------------------------------------
+  	//additional			
+		TAdditional Additional = new TAdditional(myMsPart, PhysDesc.gpPhysDesc);		  	
+		
+	  //...dopsat!!!
+		PackAndSetExtends();
+		scrolledComposite.setContent(compositeDoc);			
+		tabItem.setControl(scrolledComposite);
+  }
+    
+	public TXmlDocument(TMainHolder mh, String url) {
+		MainHolder = mh;
+  	thisDocument = this;		
+		Init();
+		
+		xmlSubDocuments = new ArrayList<TXmlDocument>(); //array for msParts
+						
 		mh.AddXmlDocument(this); //register to holder		
 		//create path
-		tabItem = new TabItem(mh.getTabFolder(), 0);
+		tabItem = new TabItem(mh.getTabFolder(), 0); 
 		
 		url = SetDocumentUrl(url);
 		
-		scrolledComposite = new ScrolledComposite(mh.getTabFolder(), SWT.H_SCROLL | SWT.V_SCROLL ); //| SWT.BORDER
-	  composite = new Composite(scrolledComposite, SWT.NONE);
-	  //composite.setLayout(new FillLayout(SWT.VERTICAL));			  
-	  //composite.setLayout(new GridLayout(1, true));
-	  FormLayout formLayout = new FormLayout (); 
-	  formLayout.marginHeight = formLayout.marginWidth = 8;
-	  composite.setLayout(formLayout);
-		mh.getTabFolder().setSelection(tabItem); //show new tab, no event!		
-		mh.FindSelectedXmlDocument(tabItem);     //because missing select event!
+  	scrolledComposite = new ScrolledComposite(MainHolder.getTabFolder(), SWT.H_SCROLL | SWT.V_SCROLL ); //| SWT.BORDER
+	  compositeDoc = new Composite(scrolledComposite, SWT.NONE);
+
+	  AfterInit();
 		
 	  try {
 	  	File f = new File(url);
@@ -2847,18 +3431,26 @@ public class TXmlDocument {
 		}
 		
 		PackAndSetExtends();
-		scrolledComposite.setContent(composite);			
+		scrolledComposite.setContent(compositeDoc);			
 		tabItem.setControl(scrolledComposite);
 	}
 	
   public void SetWasEdited() {
-  	tabItem.setText(documentName+"*");
-  	WasEdited = true;
+  	if(masterDocument == null) {
+  	  tabItem.setText(documentName+"*");
+    	WasEdited = true;  	  
+  	} else {
+  		masterDocument.SetWasEdited();
+  	}
   }
   
   public void ResetWasEdited() {
-  	tabItem.setText(documentName);
-  	WasEdited = false;
+  	if(masterDocument == null) {  	
+  	  tabItem.setText(documentName);
+  	  WasEdited = false;
+  	} else {
+  		masterDocument.ResetWasEdited();
+  	}
   }
   
   public boolean GetWasEdited() {
@@ -2915,6 +3507,8 @@ public class TXmlDocument {
 		File fOriginal = new File(newUrl);
 		fOriginal.renameTo(fBackup);		
 		
+		//transform to output file
+		//TODO: Indents, nice XML, ...
 		TransformerFactory factory = TransformerFactory.newInstance();
 		Transformer transformer;
 		try {
@@ -2949,6 +3543,14 @@ public class TXmlDocument {
 			    saveDocument(null);
       	}
       }	
+		}
+		//close all sub documents
+		if(masterDocument == null) {
+			if(xmlSubDocuments != null) for (TXmlDocument xd : xmlSubDocuments) {
+				xd.closeDocument();
+			}
+		} else {
+			masterDocument.xmlSubDocuments.remove(this);
 		}
 		//remove reference
 		MainHolder.RemoveXmlDocument(this);

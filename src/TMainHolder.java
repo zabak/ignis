@@ -175,9 +175,15 @@ class TMainHolder {
 		}
 		// this is for checking if everything is ok
 		if (currentXmlDocument == null)
-			shell.setText(SHELL_TEXT);
-		else
-			shell.setText(SHELL_TEXT + " : " + currentXmlDocument.getName());
+			shell.setText(SHELL_TEXT + " : unknown?");
+		else {
+			if(currentXmlDocument.GetMasterDocument() != null) {
+				shell.setText(SHELL_TEXT + " : " + currentXmlDocument.GetMasterDocument().getName() +
+						" > " + currentXmlDocument.getTabItem().getText());				
+			} else {
+			  shell.setText(SHELL_TEXT + " : " + currentXmlDocument.getName());
+			}
+		}
 
 		return currentXmlDocument;
 	}
@@ -300,10 +306,12 @@ class fileSaveItemListener implements SelectionListener {
 	}
 	
   public void widgetSelected(SelectionEvent event) {
-  	if(mainHolder.currentXmlDocument != null) {
-  		if(SaveAs || mainHolder.currentXmlDocument.getDocumentUrl().isEmpty()) {
-  			mainHolder.currentXmlDocument.saveDocumentAs();       		        			
-  		} else mainHolder.currentXmlDocument.saveDocument(null);
+  	TXmlDocument xmlDocument = mainHolder.currentXmlDocument;
+  	if(xmlDocument != null) {
+  		if(xmlDocument.GetMasterDocument() != null) xmlDocument = xmlDocument.GetMasterDocument();
+  		if(SaveAs || xmlDocument.getDocumentUrl().isEmpty()) {
+  			xmlDocument.saveDocumentAs();       		        			
+  		} else xmlDocument.saveDocument(null);
   	}
   }
 

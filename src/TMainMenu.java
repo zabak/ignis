@@ -115,7 +115,7 @@ public class TMainMenu {
 			@Override	public void widgetDefaultSelected(SelectionEvent e) {
 				MessageBox messageBox = new MessageBox(mainHolder.getShell(), SWT.ICON_INFORMATION
             | SWT.OK);
-				messageBox.setMessage("Ignis verze 0.9.8");
+				messageBox.setMessage("Ignis verze 0.9.9a");
 				messageBox.setText("O aplikaci");
 				messageBox.open();
 			}
