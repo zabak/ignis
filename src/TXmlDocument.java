@@ -120,6 +120,21 @@ public class TXmlDocument {
 	}
 	
 	/**
+	 * Swap two nodes with same parent
+	 * @param n1 first node
+	 * @param n2 second node
+	 */
+
+	@SuppressWarnings("unused")
+	private void SwapNodes(Node n1, Node n2) {
+		Node p = n1.getParentNode();
+		Node ns = n1.getNextSibling();
+		if(n2.getParentNode() == p) {
+		  p.insertBefore(p.replaceChild(n1, n2), ns);
+		}
+	}	
+	
+	/**
 	 * Finds first child node of desired name
 	 * 
 	 * @param p		  Parent node of node to be found
@@ -1097,6 +1112,7 @@ public class TXmlDocument {
 		Node additional;
 		Group gpAdditional;
 		//GridData gridData240;
+
 		public TAdditional(Node parent, Composite sibling) {
 			additional = CreateOrFindChildByName(parent, "additional");
 			
@@ -1249,16 +1265,17 @@ public class TXmlDocument {
 			}
 
 			class AddLiteratureListener implements SelectionListener {
-				private Node listBibl;
+				//private Node listBibl;
 				private Composite compositeLiterature;
 				
 				public AddLiteratureListener(Node n, Composite c) {
-					listBibl = n;
+					//listBibl = n;
 					compositeLiterature = c;
 				}
 				@Override	public void widgetSelected(SelectionEvent e) {
 					SetWasEdited();
-					Node Literature;
+					Node Literature;					
+					Node listBibl = CreateOrFindChildByName(additional, "listBibl");					
 					Literature = listBibl.appendChild(document.createElement("bibl"));		
 					new TLiterature(Literature, compositeLiterature);
 					PackAndSetExtends();
@@ -2157,6 +2174,9 @@ public class TXmlDocument {
 				}
 				PackAndSetExtends();		
 				SetWasEdited();
+				
+			  //open new sub item
+				new TXmlDocument(MainHolder, thisDocument, msPart);
 			}				
 			@Override	public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);					
@@ -2973,9 +2993,7 @@ public class TXmlDocument {
 			Node title = CreateOrFindChildByName(titleStmt, "title");
 			title = CreateOrFindTextChild(title);
 			new Label (gpTitleStmt, SWT.NONE).setText ("Název dokumentu");
-			Text textTitle = new Text (gpTitleStmt, SWT.BORDER);
-			gridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
-			gridData.minimumWidth = 600; 
+			Text textTitle = new Text (gpTitleStmt, SWT.BORDER);			
 			textTitle.setLayoutData(gridData);
 			new TXmlText(title, textTitle);
 			
@@ -3037,7 +3055,7 @@ public class TXmlDocument {
 		  //---------------------------------------------------------------------------------------
 			//msDescription			
 			Node msDescription = CreateOrFindChildByName(sourceDesc, "msDescription");
-			
+							
 			Group gpMsDescription = new Group(gpSourceDesc, SWT.NONE);
 			formData = new FormData();
 			formData.top = new FormAttachment(composite);
@@ -3068,6 +3086,7 @@ public class TXmlDocument {
 			isComposite = comboDocType.getSelectionIndex() > 0;
 			comboDocType.setEnabled(false); //it can't be changed!!
 			
+			InitMsDescription(msDescription);
 			//--------------------------------------------------------------------------
 			//msIdentifier
 			Node msIdentifier = CreateOrFindChildByName(msDescription, "msIdentifier");
@@ -3225,9 +3244,83 @@ public class TXmlDocument {
 			  }
 			}				
 	  }
+		private void InitMsDescription(final Node msDescription) {			
+			//create nodes in right order
+			Node msIdentifier = GetFirstChildByName(msDescription, "msIdentifier");
+			Node msHeading 		= GetFirstChildByName(msDescription, "msHeading");
+			Node msContents 	= GetFirstChildByName(msDescription, "msContents");
+			Node physDesc 		= GetFirstChildByName(msDescription, "physDesc");
+			Node history 			= GetFirstChildByName(msDescription, "history");			
+			Node additional 	= GetFirstChildByName(msDescription, "additional");
+			Node msPart       = GetFirstChildByName(msDescription, "msPart");
+			
+			if(additional == null) {
+				additional = document.createElement("additional");
+				if(msPart == null) {
+					msDescription.appendChild(additional);
+				} else {
+					msDescription.insertBefore(additional, msPart);
+				}
+			}
+			if (history == null) {
+				history = msDescription.insertBefore(document.createElement("history"), additional);
+			}
+			if (physDesc == null) {
+				physDesc = msDescription.insertBefore(document.createElement("physDesc"), history);
+			}
+			if(!isComposite) {
+				if (msContents == null) {
+					msContents = msDescription.insertBefore(document.createElement("msContents"), physDesc);
+				}
+			}
+			if (msHeading == null) {
+				msHeading = msDescription.insertBefore(document.createElement("msHeading"), isComposite ? physDesc : msContents);
+			}
+			if (msIdentifier == null) {
+				msIdentifier = msDescription.insertBefore(document.createElement("msIdentifier"), msHeading);
+			}
+			
+			/*
+			
+			Node msIdentifier = CreateOrFindChildByName(msDescription, "msIdentifier");
+			Node msHeading 		= CreateOrFindChildByName(msDescription, "msHeading");
+			Node msContents 	= CreateOrFindChildByName(msDescription, "msContents");
+			Node physDesc 		= CreateOrFindChildByName(msDescription, "physDesc");
+			Node history 			= CreateOrFindChildByName(msDescription, "history");			
+			Node additional 	= CreateOrFindChildByName(msDescription, "additional"); 
+			 
+			//this may be interesting way how to make document valid and neat
+			if(msIdentifier.compareDocumentPosition(msHeading) == Node.DOCUMENT_POSITION_PRECEDING) {
+				msDescription.appendChild(msDescription.removeChild(msHeading));
+			}
+			if(msHeading.compareDocumentPosition(msContents) == Node.DOCUMENT_POSITION_PRECEDING) {
+				msDescription.appendChild(msDescription.removeChild(msContents));
+			}			
+			if(msContents.compareDocumentPosition(physDesc) == Node.DOCUMENT_POSITION_PRECEDING) {
+				msDescription.appendChild(msDescription.removeChild(physDesc));
+			}			
+			if(physDesc.compareDocumentPosition(history) == Node.DOCUMENT_POSITION_PRECEDING) {
+				msDescription.appendChild(msDescription.removeChild(history));
+			}			
+			if(history.compareDocumentPosition(additional) == Node.DOCUMENT_POSITION_PRECEDING) {
+				msDescription.appendChild(msDescription.removeChild(additional));
+			}
+			
+			NodeList nl = msDescription.getChildNodes();
+			//over all child nodes
+			Node child;
+			for(int i = 0; i < nl.getLength(); i++) {
+				child = nl.item(i);
+				if(Node.TEXT_NODE == child.getNodeType()) {
+					child.setTextContent("\n");
+				}
+			}	
+			*/			
+		}
 	}
 	
 	TTeiHeaderFrame TeiHeaderFrame;
+	private boolean isClosing = false;
 	
 	protected void finalize() {
 		//dispose colors
@@ -3256,6 +3349,9 @@ public class TXmlDocument {
 		SubItemsColors[3] = new Color(MainHolder.getDisplay(),224,255,255);
 		SubItemsColors[4] = new Color(MainHolder.getDisplay(),224,224,255);
 		SubItemsColors[5] = new Color(MainHolder.getDisplay(),255,224,255);
+		
+		gridData = new GridData (SWT.BEGINNING, SWT.CENTER, true, false);
+		gridData.minimumWidth = 600; 
   }
   
   private void AfterInit() {
@@ -3283,6 +3379,8 @@ public class TXmlDocument {
 		msHeading = myMsPart;  	
   	
   	tabItem = new TabItem(mh.getTabFolder(), 0); 
+  	
+  	InitMsPart(myMsPart);
   	
 		Node msIdno = GetFirstChildByName(myMsPart, "idno");
 		msIdno = CreateOrFindTextChild(msIdno);
@@ -3353,7 +3451,8 @@ public class TXmlDocument {
 		
 		Node msContent	= CreateOrFindChildByName(myMsPart, "msContents");
 		Node msItem = CreateOrFindChildByName(msContent, "msItem");
-
+		@SuppressWarnings("unused")
+		Node locus = CreateOrFindChildByName(msItem, "locus"); //must be first
 		
   	//title
 		CreateTitle(msItem, composite);
@@ -3379,6 +3478,7 @@ public class TXmlDocument {
 		
   	//-------------------------------------------------------------------
   	//additional			
+		@SuppressWarnings("unused")
 		TAdditional Additional = new TAdditional(myMsPart, PhysDesc.gpPhysDesc);		  	
 		
 	  //...dopsat!!!
@@ -3387,6 +3487,33 @@ public class TXmlDocument {
 		tabItem.setControl(scrolledComposite);
   }
     
+	private void InitMsPart(Node msPart) {
+		// TODO Auto-generated method stub
+		//create nodes in right order
+		Node idno = GetFirstChildByName(msPart, "idno");
+		Node msContents 	= GetFirstChildByName(msPart, "msContents");
+		Node physDesc 		= GetFirstChildByName(msPart, "physDesc");
+		Node history 			= GetFirstChildByName(msPart, "history");			
+		Node additional 	= GetFirstChildByName(msPart, "additional");
+		
+		if(additional == null) {
+			additional = document.createElement("additional");
+			msPart.appendChild(additional);
+		}
+		if (history == null) {
+			history = msPart.insertBefore(document.createElement("history"), additional);
+		}
+		if (physDesc == null) {
+			physDesc = msPart.insertBefore(document.createElement("physDesc"), history);
+		}
+		if (msContents == null) {
+			msContents = msPart.insertBefore(document.createElement("msContents"), physDesc);
+		}
+		if (idno == null) {
+			idno = msPart.insertBefore(document.createElement("msIdentifier"), msContents);
+		}		
+	}
+
 	public TXmlDocument(TMainHolder mh, String url) {
 		MainHolder = mh;
   	thisDocument = this;		
@@ -3507,6 +3634,8 @@ public class TXmlDocument {
 		File fOriginal = new File(newUrl);
 		fOriginal.renameTo(fBackup);		
 		
+		SweepEmptyListBibl(document.getLastChild());
+		
 		//transform to output file
 		//TODO: Indents, nice XML, ...
 		TransformerFactory factory = TransformerFactory.newInstance();
@@ -3528,6 +3657,24 @@ public class TXmlDocument {
 		}		
 	}
 	
+	private void SweepEmptyListBibl(Node n) {
+		NodeList nl = n.getChildNodes();
+		//over all child nodes
+		Node child;
+		for(int i = 0; i < nl.getLength(); i++) {
+			child = nl.item(i);
+			if(child.getNodeName() == "listBibl") {
+				if(GetFirstChildByName(child, "bibl") == null) {
+					n.removeChild(child);
+					break;
+			  }
+			}
+			if(child.hasChildNodes()) {		
+				SweepEmptyListBibl(child);
+			}
+		}		
+	}
+
 	public void closeDocument() {
 		//save file
 		if(WasEdited) {
@@ -3546,11 +3693,12 @@ public class TXmlDocument {
 		}
 		//close all sub documents
 		if(masterDocument == null) {
+			isClosing = true;
 			if(xmlSubDocuments != null) for (TXmlDocument xd : xmlSubDocuments) {
 				xd.closeDocument();
 			}
 		} else {
-			masterDocument.xmlSubDocuments.remove(this);
+			if(!masterDocument.isClosing) masterDocument.xmlSubDocuments.remove(this);
 		}
 		//remove reference
 		MainHolder.RemoveXmlDocument(this);
