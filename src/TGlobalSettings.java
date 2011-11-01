@@ -93,6 +93,7 @@ public class TGlobalSettings {
   
   String ConfigPath;
   String NewFilePath;
+  String NewCompositeFilePath;
  
   public TGlobalSettings(TMainHolder mh) {  	
   	MainHolder = mh;
@@ -111,6 +112,7 @@ public class TGlobalSettings {
     messageBox.open();  	
   	/*debug*/  	
   	NewFilePath = System.getProperty("user.dir")+s+"new.xml";
+  	NewCompositeFilePath = System.getProperty("user.dir")+s+"newconv.xml";
   	SaxParser.ProcessWithSax("config.xml");
   }
   

@@ -52,8 +52,7 @@ public class TTopToolBar {
 		coolToolBar = new ToolBar (topCoolBar, SWT.FLAT);
 		
 		ToolItem coolToolItem = CreateNewToolButton("Nový tisk", "filenew.png", new fileNewItemListener(mainHolder));
-		coolToolItem = CreateNewToolButton("Nový konvolut", "filenew2.png", new fileNewConvolutListener(mainHolder) );
-		coolToolItem.setEnabled(false);		
+		coolToolItem = CreateNewToolButton("Nový konvolut", "filenew2.png", new fileNewConvolutListener(mainHolder) );		
 		CreateNewSeparator();
 		coolToolItem = CreateNewToolButton("Otevøít", "document_open_folder.png", new fileOpenItemListener(mainHolder));
 		CreateNewSeparator();

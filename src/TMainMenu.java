@@ -40,7 +40,7 @@ public class TMainMenu {
     fileNewConvolut = new MenuItem(fileMenu, SWT.PUSH);
     fileNewConvolut.setText("&Nový konvolut\tCtrl+Shift+N");
     fileNewConvolut.setAccelerator(SWT.CTRL | SWT.SHIFT | 'N');
-    fileNewConvolut.setEnabled(false);
+    //fileNewConvolut.setEnabled(false);
     fileOpenItem = new MenuItem(fileMenu, SWT.PUSH);
     fileOpenItem.setText("&Otevøít ...\tCtrl+O");
     fileOpenItem.setAccelerator(SWT.CTRL | 'O');
@@ -115,7 +115,7 @@ public class TMainMenu {
 			@Override	public void widgetDefaultSelected(SelectionEvent e) {
 				MessageBox messageBox = new MessageBox(mainHolder.getShell(), SWT.ICON_INFORMATION
             | SWT.OK);
-				messageBox.setMessage("Ignis verze 0.9.9b");
+				messageBox.setMessage("Ignis verze 1.0.0");
 				messageBox.setText("O aplikaci");
 				messageBox.open();
 			}

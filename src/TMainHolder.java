@@ -220,7 +220,7 @@ class fileNewItemListener implements SelectionListener {
 	}
 	
   public void widgetSelected(SelectionEvent event) {
-		new TXmlDocument(mainHolder, "");
+		new TXmlDocument(mainHolder, "", false);
   }
 
 	@Override
@@ -237,8 +237,8 @@ class fileNewConvolutListener implements SelectionListener {
 	}	
 	
   public void widgetSelected(SelectionEvent event) {
-  	//TODO: implement new convolut creation
-  	new TXmlDocument(mainHolder, "");
+  	//TODO: implement new convolute creation
+  	new TXmlDocument(mainHolder, "", true);
   }
 
   public void widgetDefaultSelected(SelectionEvent event) {
@@ -287,7 +287,7 @@ class fileOpenItemListener implements SelectionListener {
     			return;
     		}
     	}
-    	new TXmlDocument(mainHolder, selected);
+    	new TXmlDocument(mainHolder, selected, false);
     }
   }
 

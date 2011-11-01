@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml-stylesheet type="text/css" href="masterx.css"?>
+<!DOCTYPE TEI.2 SYSTEM "masterx.dtd">
+<TEI.2>
+<teiHeader>
+<fileDesc>
+<titleStmt>
+<title>Špalíček kramářských tisků</title>
+<author/>
+</titleStmt>
+<publicationStmt>
+<p>Knihovna Národního muzea, Praha</p>
+</publicationStmt>
+<sourceDesc>
+<p>Katalog kramářských písní ve formátu MASTER</p>
+<msDescription lang="CZE" status="compo">
+<msIdentifier>
+<country reg="CZ">Česko</country>
+<settlement>Praha</settlement>
+<repository>Knihovna Národního muzea</repository>
+<idno>KP xxx</idno>
+</msIdentifier>
+<msHeading>
+<title>x</title>
+<origPlace/>
+<origDate notAfter="" notBefore="">[]</origDate>
+</msHeading>
+<physDesc>
+<extent>[x] s.<dimensions scope="most" type="leaf" units="mm">xº.<height/>
+<width/>
+</dimensions>
+</extent>
+<bindingDesc>
+<binding>
+	<p/>
+</binding>
+</bindingDesc>
+<condition>
+<p>Stav dobrý</p>
+</condition>
+</physDesc>
+<history>
+<origin>
+<p>
+<placeName type="country">Česko</placeName>
+</p>
+</origin>
+<provenance>
+<p/>
+</provenance>
+<acquisition>
+<p>KNM x</p>
+</acquisition>
+</history>
+<additional/>
+</msDescription>
+</sourceDesc>
+</fileDesc>
+<profileDesc>
+<langUsage>
+<language id="CZE">čeština</language>
+<language id="GER">němčina</language>
+<language id="LAT">latina</language>
+<language id="SLO">slovenština</language>
+<language id="POL">polština</language>
+</langUsage>
+</profileDesc>
+</teiHeader>
+<text>
+<body>
+<p/>
+</body>
+</text>
+</TEI.2>
