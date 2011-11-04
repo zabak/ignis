@@ -23,10 +23,10 @@
 <msHeading>
 <title>x</title>
 <origPlace/>
-<origDate notAfter="" notBefore="">[]</origDate>
+<origDate notAfter="" notBefore=""></origDate>
 </msHeading>
 <physDesc>
-<extent>[x] s.<dimensions scope="most" type="leaf" units="mm">xº.<height/>
+<extent>[] s.<dimensions scope="most" type="leaf" units="mm">xº.<height/>
 <width/>
 </dimensions>
 </extent>
@@ -49,7 +49,7 @@
 <p/>
 </provenance>
 <acquisition>
-<p>KNM x</p>
+<p></p>
 </acquisition>
 </history>
 <additional/>

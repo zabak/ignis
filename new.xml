@@ -46,7 +46,7 @@
 <q type="melody">
 <note>Bez nápěvu</note>
 </q>
-<note type="strophes">[x] slok</note>
+<note type="strophes">[] slok</note>
 </msItem>
 </msContents>
 <physDesc>
@@ -56,7 +56,7 @@
 <support>
 <p>Papír</p>
 </support>
-<extent>[x] s.<dimensions scope="all" type="leaf" units="mm">xº.</dimensions>
+<extent>[] s.<dimensions scope="all" type="leaf" units="mm">xº.</dimensions>
 </extent>
 <layout>
 <p>Tištěno per extensum.<dimensions units="mm">
@@ -86,7 +86,7 @@
 <origin>
 <p>
 <placeName type="country">Česko</placeName>
-<origDate notAfter="1xxx" notBefore="1xxx"/>
+<origDate notAfter="" notBefore=""/>
 </p>
 </origin>
 <acquisition>

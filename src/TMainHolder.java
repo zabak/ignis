@@ -280,7 +280,7 @@ class fileOpenItemListener implements SelectionListener {
     String selected = fd.open();
     if(selected != null) {
     	for(TXmlDocument xd : mainHolder.xmlDocuments) {
-    		if(xd.getDocumentUrl().equals(selected) && !xd.getDocumentUrl().isEmpty()) {
+    		if(xd.getDocumentUrl() != null && xd.getDocumentUrl().equals(selected) && !xd.getDocumentUrl().isEmpty()) {
     			TabItem tabItem = xd.getTabItem();
     			mainHolder.getTabFolder().setSelection(tabItem); //show new tab, no event!		
     			mainHolder.FindSelectedXmlDocument(tabItem);     //because missing select event!
@@ -309,7 +309,7 @@ class fileSaveItemListener implements SelectionListener {
   	TXmlDocument xmlDocument = mainHolder.currentXmlDocument;
   	if(xmlDocument != null) {
   		if(xmlDocument.GetMasterDocument() != null) xmlDocument = xmlDocument.GetMasterDocument();
-  		if(SaveAs || xmlDocument.getDocumentUrl().isEmpty()) {
+  		if(SaveAs || (xmlDocument.getDocumentUrl() != null && xmlDocument.getDocumentUrl().isEmpty())) {
   			xmlDocument.saveDocumentAs();       		        			
   		} else xmlDocument.saveDocument(null);
   	}

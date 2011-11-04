@@ -667,7 +667,7 @@ public class TXmlDocument {
 		Node textNode;
 		String[] AttrValues;
 		String[] NodeValues;
-
+		
 		class TXmlTextModifyListener implements ModifyListener {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -799,13 +799,13 @@ public class TXmlDocument {
 		private Text textPerson;
 		private Text textPlace;
 
-		public TPrinter(Composite p, Node n, Node m) {
+		public TPrinter(Composite p, Node n, Node m, boolean AlwaysCreate) {
 			Printer = n;
 			Master = m;
 			parent = p;
 			group = null;
 
-			if (Printer == null) {
+			if (Printer == null && !AlwaysCreate) {
 				CreateLatentPrinter();
 			} else {
 				CreatePrinter();
@@ -825,8 +825,7 @@ public class TXmlDocument {
 			 */
 			new Label(group, SWT.NONE).setText("Tiskaø");
 			Button button = new Button(group, SWT.PUSH);
-			button
-					.setText(Printer == null ? "Doplnit ... (povinnì pro jednotlivý tisk)"
+			button.setText(Printer == null ? "Doplnit ... (povinnì pro jednotlivý tisk)"
 							: "Smazat ... (pro konvolut)");
 			button.addSelectionListener(new SelectionListener() {
 				@Override
@@ -1519,7 +1518,9 @@ public class TXmlDocument {
 			Combo comboPlaceName = new Combo(composite, SWT.NONE);
 			comboPlaceName.setItems(new String[] { "Èesko" });
 			comboPlaceName.setLayoutData(gridData240);
-			new TXmlCombo(CreateOrFindTextChild(placeName), comboPlaceName);
+			Node textPlaceName = CreateFirstOrFindTextChild(placeName);
+			if(textPlaceName.getNodeValue().isEmpty()) textPlaceName.setNodeValue("Èesko");
+			new TXmlCombo(textPlaceName, comboPlaceName);
 
 			// provenance
 			if (masterDocument == null) {
@@ -1553,9 +1554,9 @@ public class TXmlDocument {
 			compositeOrigDate.setLayout(gridLayoutCompact);
 
 			Attr notBefore = CreateOrFindAttribute((Element) origDate, "notBefore",
-					"1900");
+					"");
 			Attr notAfter = CreateOrFindAttribute((Element) origDate, "notAfter",
-					"1900");
+					"");
 
 			GridData lgridData = new GridData(SWT.BEGINNING, SWT.CENTER, true, false);
 			lgridData.minimumWidth = 75;
@@ -1706,6 +1707,10 @@ public class TXmlDocument {
 				comboForm.setItems(new String[] { "Kniha - tisk", "Rukopis",
 						"Strojopis" });
 				comboForm.setLayoutData(physGridData);
+				
+				Node formText = CreateOrFindTextChild(form);
+				if(formText.getNodeValue().isEmpty()) formText.setNodeValue("Kniha - tisk");
+				
 				new TXmlCombo(CreateOrFindTextChild(form), comboForm);
 
 				// support
@@ -1717,7 +1722,9 @@ public class TXmlDocument {
 				Combo comboSupport = new Combo(composite, SWT.NONE);
 				comboSupport.setItems(new String[] { "Papír" });
 				comboSupport.setLayoutData(physGridData);
-				new TXmlCombo(CreateOrFindTextChild(support), comboSupport);
+				Node comboSupportText = CreateOrFindTextChild(support);
+				if(comboSupportText.getNodeValue().isEmpty()) comboSupportText.setNodeValue("Papír"); 
+				new TXmlCombo(comboSupportText, comboSupport);
 			}
 			// extent
 
@@ -1729,10 +1736,11 @@ public class TXmlDocument {
 			compositeExtent.setLayout(gridLayoutCompact);
 
 			Combo comboExtent = new Combo(compositeExtent, SWT.NONE);
-			comboExtent.setItems(new String[] { "[x] s.", "x s." });
+			comboExtent.setItems(new String[] { "[] s.", " s." });
 			comboExtent.setLayoutData(physGridData);
-			new Label(compositeExtent, SWT.NONE)
-					.setText("(neèíslované v hranatých závorkách)");
+			new Label(compositeExtent, SWT.NONE).setText("(neèíslované v hranatých závorkách)");
+			Node extentText = CreateFirstOrFindTextChild(extent);
+			if (extentText.getNodeValue().isEmpty()) extentText.setNodeValue("[] s.");
 			new TXmlCombo(CreateFirstOrFindTextChild(extent), comboExtent);
 
 			// extent - dimensions
@@ -1795,6 +1803,8 @@ public class TXmlDocument {
 				combolayoutP.setItems(new String[] { "Tištìno per extensum.",
 						"Tištìno ve dvou sloupcích.", "Tištìno ve tøech sloupcích." });
 				combolayoutP.setLayoutData(physGridData);
+				Node layoutPText = CreateFirstOrFindTextChild(layoutP);
+				if(layoutPText.getNodeValue().isEmpty()) layoutPText.setNodeValue("Tištìno per extensum.");
 				new TXmlCombo(CreateFirstOrFindTextChild(layoutP), combolayoutP);
 
 				// dimension
@@ -1884,8 +1894,8 @@ public class TXmlDocument {
 			Combo comboConditionP = new Combo(composite, SWT.NONE);
 			comboConditionP.setItems(new String[] { "Stav dobrý", "Restaurováno",
 					"Poškozeno", "Velmi poškozeno" });
-			comboConditionP.setLayoutData(summGridData3);
-			SetWidth(comboConditionP, 600);
+			comboConditionP.setLayoutData(isComposite ? summGridData3 : summGridData2);
+			//SetWidth(comboConditionP, isComposite ? 600 : 300);
 			new TXmlCombo(CreateFirstOrFindTextChild(conditionP), comboConditionP);
 
 			/*
@@ -2188,13 +2198,13 @@ public class TXmlDocument {
 				noteStrophes = parent.appendChild(document.createElement("note"));
 				CreateOrFindAttribute((Element) noteStrophes, "type", "strophes");
 				Node noteStrophesText = CreateOrFindTextChild(noteStrophes);
-				noteStrophesText.setNodeValue("[x] slok");
+				noteStrophesText.setNodeValue("[] slok");
 			}
 
 			Composite compositeNoteStrophes = new Composite(composite, SWT.NONE);
 			compositeNoteStrophes.setLayout(gridLayoutCompact);
 			comboNoteStrophes = new Combo(compositeNoteStrophes, SWT.NONE);
-			comboNoteStrophes.setItems(new String[] { "[x] slok", "x slok" });
+			comboNoteStrophes.setItems(new String[] { "[] slok", " slok" });
 			comboNoteStrophes.setLayoutData(melodyGridData);
 			new Label(compositeNoteStrophes, SWT.NONE)
 					.setText("(neèíslované v hranatých závorkách)");
@@ -3057,7 +3067,8 @@ public class TXmlDocument {
 					"genre");
 			if (termGenre == null) { // if doesn't exist create
 				termGenre = summary.appendChild(document.createElement("term"));
-				CreateOrFindAttribute((Element) termGenre, "type", "genre");
+				CreateFirstOrFindTextChild(termGenre).setNodeValue("Kramáøská píseò");
+				CreateOrFindAttribute((Element) termGenre, "type", "genre");				
 			}
 			new TTerm(termGenre, true);
 			// get more terms
@@ -3156,7 +3167,7 @@ public class TXmlDocument {
 			}
 
 			if(!isComposite || printer != null) {
-			  new TPrinter(compositePrinter, printer, parent);
+			  new TPrinter(compositePrinter, printer, parent, masterDocument != null);
 			} else { //for composite no printer
 				formData = new FormData();
 				formData.top = new FormAttachment(sibling);
@@ -3237,7 +3248,14 @@ public class TXmlDocument {
 				"slovensky", "polsky" });
 		Attr langAttr = CreateOrFindAttribute((Element) textLang, "langKey", "CZE");
 		textLang = CreateOrFindTextChild(textLang);
-		comboLang.setText(textLang.getNodeValue());
+		for(int i = 0; i < LANGS_VAL.length ; i++) {
+			if(langAttr.getValue().equals(LANGS_VAL[i])) {
+				textLang.setNodeValue(LANGS_VAL_LONG[i]);
+				comboLang.select(i);
+				break;
+			}
+		}
+		//comboLang.setText(textLang.getNodeValue());
 		new TXmlNodeAttrCombo(textLang, langAttr, comboLang, LANGS_VAL, null);
 	}
 
@@ -3968,7 +3986,7 @@ public class TXmlDocument {
 					+ "' není uložen. Uložit?");
 			messageBox.setText("Uložit?");
 			int response = messageBox.open();
-			if (response == SWT.YES) {
+			if (response == SWT.YES && getDocumentUrl() != null) { //getDocumentUrl() should not be null never
 				if (getDocumentUrl().isEmpty()) {
 					saveDocumentAs();
 				} else {
