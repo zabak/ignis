@@ -2939,6 +2939,7 @@ public class TXmlDocument {
 		GridData summGridData4;
 		Boolean searchSummary = true;
 		Color bgColor;
+		private Node termGenre;
 
 		class TTerm {
 			Composite composite;
@@ -3011,6 +3012,7 @@ public class TXmlDocument {
 			summaryText.setLayoutData(summGridData4);
 			new TXmlText(t, summaryText);
 			searchSummary = false;
+			new TTerm(termGenre, true);
 		}
 
 		class AddTermButtonListener implements SelectionListener {
@@ -3063,20 +3065,21 @@ public class TXmlDocument {
 			rowLayout.marginHeight = rowLayout.marginWidth = 5;
 			compositeTerms.setLayout(rowLayout);
 
-			Node termGenre = FindChildByNameAndAttribute(summary, "term", "type",
+			termGenre = FindChildByNameAndAttribute(summary, "term", "type",
 					"genre");
 			if (termGenre == null) { // if doesn't exist create
 				termGenre = summary.appendChild(document.createElement("term"));
 				CreateFirstOrFindTextChild(termGenre).setNodeValue("Kramáøská píseò");
 				CreateOrFindAttribute((Element) termGenre, "type", "genre");				
 			}
-			new TTerm(termGenre, true);
+			//new TTerm(termGenre, true); //moved to the CreateSummaryText
 			// get more terms
 
 			Node term = termGenre.getNextSibling();
 			while (term != null) {
 				if (searchSummary && term.getNodeType() == Node.TEXT_NODE) {
 					CreateSummaryText(term); // this sets searchSummary = false
+					
 				}
 				if (term.getNodeName().equals("term")) {
 					if (searchSummary) { // if there was no text node after first term
