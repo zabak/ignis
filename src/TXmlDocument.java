@@ -1701,15 +1701,15 @@ public class TXmlDocument {
 				Node form = CreateOrFindChildByName(physDesc, "form");
 				form = CreateOrFindChildByName(form, "p");
 
-				new Label(composite, SWT.NONE).setText("Typ pøedmìtu");
+				new Label(composite, SWT.NONE).setText("Typ dokumentu");
 
 				Combo comboForm = new Combo(composite, SWT.NONE);
-				comboForm.setItems(new String[] { "Kniha - tisk", "Rukopis",
+				comboForm.setItems(new String[] { "Tisk", "Rukopis",
 						"Strojopis" });
 				comboForm.setLayoutData(physGridData);
 				
 				Node formText = CreateOrFindTextChild(form);
-				if(formText.getNodeValue().isEmpty()) formText.setNodeValue("Kniha - tisk");
+				if(formText.getNodeValue().isEmpty()) formText.setNodeValue("Tisk");
 				
 				new TXmlCombo(CreateOrFindTextChild(form), comboForm);
 
@@ -1884,10 +1884,19 @@ public class TXmlDocument {
 				buttonAddIllustrationRef
 						.addSelectionListener(new AddIllustrationRefListener(
 								decorationDecoNoteP));
+				
+				composite = new Composite(gpPhysDesc, SWT.NONE);
+				composite.setLayout(new GridLayout(2, false));
+				formData = new FormData();
+				formData.top = new FormAttachment(compositeAddNext);
+				formData.left = new FormAttachment(0, 0);
+				formData.right = new FormAttachment(100, 0);
+				composite.setLayoutData(formData);
+				
 			}
 
 			// condition
-			new Label(composite, SWT.NONE).setText("Stav pøedmìtu");
+			new Label(composite, SWT.NONE).setText("Stav dokumentu");
 			Node condition = CreateOrFindChildByName(physDesc, "condition");
 			Node conditionP = CreateOrFindChildByName(condition, "p");
 
@@ -2599,7 +2608,7 @@ public class TXmlDocument {
 				titleIncipit = msItem.appendChild(document.createElement("title"));
 				CreateOrFindAttribute((Element) titleIncipit, "type", "incipit");
 			}
-			new Label(composite, SWT.NONE).setText("Incipit první písnì");
+			new Label(composite, SWT.NONE).setText("Incipit prvního textu");
 			Text textTitleIncipit = new Text(composite, SWT.BORDER);
 			textTitleIncipit.setLayoutData(gridData);
 			new TXmlText(CreateOrFindTextChild(titleIncipit), textTitleIncipit);
@@ -3405,7 +3414,7 @@ public class TXmlDocument {
 			// settlement
 			Node settlement = CreateOrFindChildByName(msIdentifier, "settlement");
 			settlement = CreateOrFindTextChild(settlement);
-			new Label(gpMsIdentifier, SWT.NONE).setText("Mìsto uložení");
+			new Label(gpMsIdentifier, SWT.NONE).setText("Místo uložení");
 			Text textSettlement = new Text(gpMsIdentifier, SWT.BORDER);
 			textSettlement.setLayoutData(gridData);
 			new TXmlText(settlement, textSettlement);
